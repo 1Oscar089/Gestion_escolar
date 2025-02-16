@@ -13,7 +13,6 @@
             background-color: #f0f0f0;
         }
         .container {
-            
             margin: 0;
             background-color: white;
             padding: 0;
@@ -183,6 +182,7 @@
                 </div>
                 <h3>Seleccione los grados que asistieron:</h3>
                 <div class="checkbox-group">
+                    <label><input type="checkbox" id="select-all-grados"> Seleccionar todo</label>
                     <label><input type="checkbox" name="grado" value="P4" data-students="2"> P4 (2 estudiantes)</label>
                     <label><input type="checkbox" name="grado" value="P5" data-students="7"> P5 (7 estudiantes)</label>
                     <label><input type="checkbox" name="grado" value="P6" data-students="8"> P6 (8 estudiantes)</label>
@@ -297,6 +297,15 @@
         // Event listeners para calcular egreso
         document.querySelectorAll('input[name="grado"], input[name="alimento"]').forEach(checkbox => {
             checkbox.addEventListener('change', calcularEgreso);
+        });
+
+        // Seleccionar todos los grados
+        document.getElementById('select-all-grados').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('input[name="grado"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            calcularEgreso(); // Recalcular egreso
         });
 
         function calcularEgreso() {
