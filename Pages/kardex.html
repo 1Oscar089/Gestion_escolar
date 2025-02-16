@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kardex</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            position: relative; /* Para posicionar el ícono correctamente */
+        }
+        .header {
+            background-color: #0066cc;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px 8px 0 0;
+            margin-bottom: 20px;
+        }
+        .options {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .option-button {
+            background-color: #0066cc;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            flex: 1;
+        }
+        .option-button:hover {
+            background-color: #0052a3;
+        }
+        .section {
+            display: none;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        input[type="number"], input[type="date"], input[type="month"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .save-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .save-button:hover {
+            background-color: #218838;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #0066cc;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .delete-button {
+            color: red;
+            cursor: pointer;
+        }
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .no-data {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            margin-top: 20px;
+            color: #666;
+        }
+        small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Ícono de la casita con hipervínculo -->
+        <a href="../" style="position: absolute; top: 20px; right: 20px; font-size: 24px; color: #000000; text-decoration: none;">
+            <i class="fas fa-home"></i>
+        </a>
+
+        <div class="header">
+            <h1>Kardex - Sistema de Control de Alimentos</h1>
+        </div>
+        
+        <div class="options">
+            <button class="option-button" onclick="showSection('ingreso')">Ingreso</button>
+            <button class="option-button" onclick="showSection('egreso')">Egreso</button>
+            <button class="option-button" onclick="showSection('historial-mensual')">Ver Historial Mensual</button>
+            <button class="option-button" onclick="showSection('historial-completo')">Ver Historial Completo</button>
+        </div>
+
+        <div id="ingreso" class="section">
+            <h2>Registro de Ingreso</h2>
+            <form id="ingresoForm">
+                <div class="form-group">
+                    <label>Fecha:</label>
+                    <input type="date" id="fechaIngreso" required>
+                </div>
+                <div class="form-group">
+                    <label>Leche (kg):</label>
+                    <input type="number" step="0.01" id="lecheIngreso" required>
+                </div>
+                <div class="form-group">
+                    <label>Frijol (kg):</label>
+                    <input type="number" step="0.01" id="frijolIngreso" required>
+                </div>
+                <div class="form-group">
+                    <label>Arroz (kg):</label>
+                    <input type="number" step="0.01" id="arrozIngreso" required>
+                </div>
+                <div class="form-group">
+                    <label>Azúcar (kg):</label>
+                    <input type="number" step="0.01" id="azucarIngreso" required>
+                </div>
+                <div class="form-group">
+                    <label>Aceite (kg):</label>
+                    <input type="number" step="0.01" id="aceiteIngreso" required>
+                </div>
+                <div class="form-group">
+                    <label>Cereal (kg):</label>
+                    <input type="number" step="0.01" id="cerealIngreso" required>
+                </div>
+                <div class="form-group">
+                    <label>Biofortik (kg):</label>
+                    <input type="number" step="0.01" id="biofortikIngreso" required>
+                </div>
+                <button type="submit" class="save-button">Guardar Ingreso</button>
+            </form>
+        </div>
+
+        <div id="egreso" class="section">
+            <h2>Registro de Egreso</h2>
+            <form id="egresoForm">
+                <div class="form-group">
+                    <label>Fecha:</label>
+                    <input type="date" id="fechaEgreso" required>
+                </div>
+                <h3>Seleccione los grados que asistieron:</h3>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="grado" value="P4" data-students="2"> P4 (2 estudiantes)</label>
+                    <label><input type="checkbox" name="grado" value="P5" data-students="7"> P5 (7 estudiantes)</label>
+                    <label><input type="checkbox" name="grado" value="P6" data-students="8"> P6 (8 estudiantes)</label>
+                    <label><input type="checkbox" name="grado" value="1" data-students="13"> 1° (13 estudiantes)</label>
+                    <label><input type="checkbox" name="grado" value="2" data-students="15"> 2° (15 estudiantes)</label>
+                    <label><input type="checkbox" name="grado" value="3" data-students="10"> 3° (10 estudiantes)</label>
+                    <label><input type="checkbox" name="grado" value="4" data-students="10"> 4° (10 estudiantes)</label>
+                    <label><input type="checkbox" name="grado" value="5" data-students="8"> 5° (8 estudiantes)</label>
+                    <label><input type="checkbox" name="grado" value="6" data-students="8"> 6° (8 estudiantes)</label>
+                    <label><input type="checkbox" name="grado" value="7" data-students="13"> 7° (13 estudiantes)</label>
+                    <label><input type="checkbox" name="grado" value="8" data-students="10"> 8° (10 estudiantes)</label>
+                    <label><input type="checkbox" name="grado" value="9" data-students="9"> 9° (9 estudiantes)</label>
+                </div>
+                <h3>Seleccione los alimentos entregados:</h3>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" name="alimento" value="leche"> Leche (30g/estudiante)</label>
+                    <label><input type="checkbox" name="alimento" value="frijol"> Frijol (20g/estudiante)</label>
+                    <label><input type="checkbox" name="alimento" value="arroz"> Arroz (25g/estudiante)</label>
+                    <label><input type="checkbox" name="alimento" value="azucar"> Azúcar (12g/estudiante)</label>
+                    <label><input type="checkbox" name="alimento" value="aceite"> Aceite (10g/estudiante)</label>
+                    <label><input type="checkbox" name="alimento" value="cereal"> Cereal (30g/estudiante)</label>
+                    <label><input type="checkbox" name="alimento" value="biofortik"> Biofortik (30g/estudiante)*</label>
+                </div>
+                <small>*Biofortik solo para P4, P5, P6 y 1° a 6° grado</small>
+                <div id="calculosEgreso">
+                    <h3>Cálculos de Egreso:</h3>
+                    <p>Leche: <span id="lecheEgreso">0</span> kg</p>
+                    <p>Frijol: <span id="frijolEgreso">0</span> kg</p>
+                    <p>Arroz: <span id="arrozEgreso">0</span> kg</p>
+                    <p>Azúcar: <span id="azucarEgreso">0</span> kg</p>
+                    <p>Aceite: <span id="aceiteEgreso">0</span> kg</p>
+                    <p>Cereal: <span id="cerealEgreso">0</span> kg</p>
+                    <p>Biofortik: <span id="biofortikEgreso">0</span> kg</p>
+                </div>
+                <button type="submit" class="save-button">Guardar Egreso</button>
+            </form>
+        </div>
+
+        <div id="historial-mensual" class="section">
+            <h2>Historial Mensual</h2>
+            <div class="form-group">
+                <label>Seleccione el mes:</label>
+                <input type="month" id="mesHistorial">
+            </div>
+            <div id="tablaHistorialMensual"></div>
+        </div>
+
+        <div id="historial-completo" class="section">
+            <h2>Historial Completo</h2>
+            <div id="tablaHistorialCompleto"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, where, orderBy, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCcS8N9sFWCBzSH0LL6lH99lsDPW5Ct2Js",
+            authDomain: "gestion-escolar-d1a02.firebaseapp.com",
+            projectId: "gestion-escolar-d1a02",
+            storageBucket: "gestion-escolar-d1a02.firebasestorage.app",
+            messagingSenderId: "644987757581",
+            appId: "1:644987757581:web:ea2de7ff99a1310c03a144",
+            measurementId: "G-3QR54M73SQ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Función para mostrar secciones
+        window.showSection = function(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.style.display = 'none';
+            });
+            document.getElementById(sectionId).style.display = 'block';
+            
+            if (sectionId === 'historial-completo') {
+                cargarHistorialCompleto();
+            }
+        };
+
+        // Manejo del formulario de ingreso
+        document.getElementById('ingresoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (confirm('¿Está seguro de guardar este ingreso?')) {
+                const fecha = document.getElementById('fechaIngreso').value;
+                const ingreso = {
+                    fecha: fecha,
+                    tipo: 'ingreso',
+                    leche: parseFloat(document.getElementById('lecheIngreso').value),
+                    frijol: parseFloat(document.getElementById('frijolIngreso').value),
+                    arroz: parseFloat(document.getElementById('arrozIngreso').value),
+                    azucar: parseFloat(document.getElementById('azucarIngreso').value),
+                    aceite: parseFloat(document.getElementById('aceiteIngreso').value),
+                    cereal: parseFloat(document.getElementById('cerealIngreso').value),
+                    biofortik: parseFloat(document.getElementById('biofortikIngreso').value)
+                };
+
+                try {
+                    await addDoc(collection(db, 'kardex'), ingreso);
+                    alert('Ingreso guardado exitosamente');
+                    e.target.reset();
+                } catch (error) {
+                    console.error('Error al guardar:', error);
+                    alert('Error al guardar el ingreso');
+                }
+            }
+        });
+
+        // Event listeners para calcular egreso
+        document.querySelectorAll('input[name="grado"], input[name="alimento"]').forEach(checkbox => {
+            checkbox.addEventListener('change', calcularEgreso);
+        });
+
+        function calcularEgreso() {
+            let totalEstudiantes = 0;
+            let estudiantesBiofortik = 0;
+
+            document.querySelectorAll('input[name="grado"]:checked').forEach(checkbox => {
+                const estudiantes = parseInt(checkbox.dataset.students);
+                totalEstudiantes += estudiantes;
+                
+                const grado = checkbox.value;
+                if (grado === 'P4' || grado === 'P5' || grado === 'P6' || 
+                    grado === '1' || grado === '2' || grado === '3' || 
+                    grado === '4' || grado === '5' || grado === '6') {
+                    estudiantesBiofortik += estudiantes;
+                }
+            });
+
+            // Resetear todos los valores a 0
+            document.getElementById('lecheEgreso').textContent = "0";
+            document.getElementById('frijolEgreso').textContent = "0";
+            document.getElementById('arrozEgreso').textContent = "0";
+            document.getElementById('azucarEgreso').textContent = "0";
+            document.getElementById('aceiteEgreso').textContent = "0";
+            document.getElementById('cerealEgreso').textContent = "0";
+            document.getElementById('biofortikEgreso').textContent = "0";
+
+            // Calcular solo para los alimentos seleccionados
+            document.querySelectorAll('input[name="alimento"]:checked').forEach(alimento => {
+                switch(alimento.value) {
+                    case 'leche':
+                        document.getElementById('lecheEgreso').textContent = ((totalEstudiantes * 30) / 1000).toFixed(2);
+                        break;
+                    case 'frijol':
+                        document.getElementById('frijolEgreso').textContent = ((totalEstudiantes * 20) / 1000).toFixed(2);
+                        break;
+                    case 'arroz':
+                        document.getElementById('arrozEgreso').textContent = ((totalEstudiantes * 25) / 1000).toFixed(2);
+                        break;
+                    case 'azucar':
+                        document.getElementById('azucarEgreso').textContent = ((totalEstudiantes * 12) / 1000).toFixed(2);
+                        break;
+                    case 'aceite':
+                        document.getElementById('aceiteEgreso').textContent = ((totalEstudiantes * 10) / 1000).toFixed(2);
+                        break;
+                    case 'cereal':
+                        document.getElementById('cerealEgreso').textContent = ((totalEstudiantes * 30) / 1000).toFixed(2);
+                        break;
+                    case 'biofortik':
+                        document.getElementById('biofortikEgreso').textContent = ((estudiantesBiofortik * 30) / 1000).toFixed(2);
+                        break;
+                }
+            });
+        }
+
+        // Manejo del formulario de egreso
+        document.getElementById('egresoForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (confirm('¿Está seguro de guardar este egreso?')) {
+                const fecha = document.getElementById('fechaEgreso').value;
+                const egreso = {
+                    fecha: fecha,
+                    tipo: 'egreso',
+                    leche: parseFloat(document.getElementById('lecheEgreso').textContent),
+                    frijol: parseFloat(document.getElementById('frijolEgreso').textContent),
+                    arroz: parseFloat(document.getElementById('arrozEgreso').textContent),
+                    azucar: parseFloat(document.getElementById('azucarEgreso').textContent),
+                    aceite: parseFloat(document.getElementById('aceiteEgreso').textContent),
+                    cereal: parseFloat(document.getElementById('cerealEgreso').textContent),
+                    biofortik: parseFloat(document.getElementById('biofortikEgreso').textContent)
+                };
+
+                try {
+                    await addDoc(collection(db, 'kardex'), egreso);
+                    alert('Egreso guardado exitosamente');
+                    e.target.reset();
+                    calcularEgreso(); // Resetear los cálculos
+                } catch (error) {
+                    console.error('Error al guardar:', error);
+                    alert('Error al guardar el egreso');
+                }
+            }
+        });
+
+        // Historial mensual
+        document.getElementById('mesHistorial').addEventListener('change', async (e) => {
+            const mesSeleccionado = e.target.value; // Formato: "YYYY-MM"
+            const [year, month] = mesSeleccionado.split('-');
+            const startDate = `${year}-${month}-01`;
+            const endDate = `${year}-${month}-31`;
+
+            const q = query(
+                collection(db, 'kardex'),
+                where('fecha', '>=', startDate),
+                where('fecha', '<=', endDate),
+                orderBy('fecha')
+            );
+
+            try {
+                const querySnapshot = await getDocs(q);
+                mostrarHistorial(querySnapshot, 'tablaHistorialMensual');
+            } catch (error) {
+                console.error('Error al cargar historial mensual:', error);
+                alert('Error al cargar el historial mensual');
+            }
+        });
+
+        // Cargar historial completo
+        async function cargarHistorialCompleto() {
+            const q = query(collection(db, 'kardex'), orderBy('fecha'));
+            try {
+                const querySnapshot = await getDocs(q);
+                mostrarHistorial(querySnapshot, 'tablaHistorialCompleto', true);
+            } catch (error) {
+                console.error('Error al cargar historial completo:', error);
+                alert('Error al cargar el historial completo');
+            }
+        }
+
+        // Función para mostrar el historial
+        function mostrarHistorial(querySnapshot, containerId, includeDelete = false) {
+            const container = document.getElementById(containerId);
+
+            if (querySnapshot.empty) {
+                container.innerHTML = '<div class="no-data">No hay registros para mostrar</div>';
+                return;
+            }
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Leche</th>
+                            <th>Frijol</th>
+                            <th>Arroz</th>
+                            <th>Azúcar</th>
+                            <th>Aceite</th>
+                            <th>Cereal</th>
+                            <th>Biofortik</th>
+                            ${includeDelete ? '<th>Acciones</th>' : ''}
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            let saldos = {
+                leche: 0,
+                frijol: 0,
+                arroz: 0,
+                azucar: 0,
+                aceite: 0,
+                cereal: 0,
+                biofortik: 0
+            };
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                const fecha = new Date(data.fecha).toLocaleDateString();
+
+                // Actualizar saldos
+                if (data.tipo === 'ingreso') {
+                    Object.keys(saldos).forEach(key => {
+                        saldos[key] += data[key] || 0;
+                    });
+                } else {
+                    Object.keys(saldos).forEach(key => {
+                        saldos[key] -= data[key] || 0;
+                    });
+                }
+
+                html += `
+                    <tr>
+                        <td>${fecha}</td>
+                        <td>${data.tipo.toUpperCase()}</td>
+                        <td>${data.leche?.toFixed(2) || 0} (${saldos.leche.toFixed(2)})</td>
+                        <td>${data.frijol?.toFixed(2) || 0} (${saldos.frijol.toFixed(2)})</td>
+                        <td>${data.arroz?.toFixed(2) || 0} (${saldos.arroz.toFixed(2)})</td>
+                        <td>${data.azucar?.toFixed(2) || 0} (${saldos.azucar.toFixed(2)})</td>
+                        <td>${data.aceite?.toFixed(2) || 0} (${saldos.aceite.toFixed(2)})</td>
+                        <td>${data.cereal?.toFixed(2) || 0} (${saldos.cereal.toFixed(2)})</td>
+                        <td>${data.biofortik?.toFixed(2) || 0} (${saldos.biofortik.toFixed(2)})</td>
+                        ${includeDelete ? `<td><span class="delete-button" onclick="eliminarRegistro('${doc.id}')">❌</span></td>` : ''}
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Función para eliminar registro
+        window.eliminarRegistro = async function(docId) {
+            if (confirm('¿Está seguro de eliminar este registro?')) {
+                try {
+                    await deleteDoc(doc(db, 'kardex', docId));
+                    alert('Registro eliminado exitosamente');
+                    cargarHistorialCompleto();
+                } catch (error) {
+                    console.error('Error al eliminar:', error);
+                    alert('Error al eliminar el registro');
+                }
+            }
+        };
+    </script>
+</body>
+</html>
