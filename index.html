@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Escolar</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+        }
+        
+        .header {
+            background-color: #1a4c8a;
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card h2 {
+            color: #1a4c8a;
+            margin-bottom: 1rem;
+        }
+        
+        .card p {
+            color: #666;
+            margin-bottom: 1.5rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background-color: #1a4c8a;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn:hover {
+            background-color: #153d6f;
+        }
+        
+        .disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        
+        .disabled:hover {
+            background-color: #cccccc;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Sistema de Gestión Escolar</h1>
+    </header>
+    
+    <main class="container">
+        <div class="card">
+            <h2>Inventario</h2>
+            <p>Gestión completa del inventario escolar</p>
+            <a href="Pages/inventario.html" class="btn">Acceder</a>
+        </div>
+        
+        <div class="card">
+            <h2>Kardex</h2>
+            <p>Sistema de registro académico</p>
+            <a href="Pages/kardex.html" class="btn">Acceder</a>
+        </div>
+        
+        <div class="card">
+            <h2>Cálculo de Alimentos</h2>
+            <p>Generación de informes alimenticios</p>
+            <a href="Pages/alimentos.html" class="btn">Acceder</a>
+        </div>
+        
+        <div class="card">
+            <h2>Próximamente</h2>
+            <p>Nuevas funcionalidades en desarrollo</p>
+            <a class="btn disabled">Próximamente</a>
+        </div>
+        
+        <div class="card">
+            <h2>Próximamente</h2>
+            <p>Nuevas funcionalidades en desarrollo</p>
+            <a class="btn disabled">Próximamente</a>
+        </div>
+        
+        <div class="card">
+            <h2>Próximamente</h2>
+            <p>Nuevas funcionalidades en desarrollo</p>
+            <a class="btn disabled">Próximamente</a>
+        </div>
+        
+        <div class="card">
+            <h2>Próximamente</h2>
+            <p>Nuevas funcionalidades en desarrollo</p>
+            <a class="btn disabled">Próximamente</a>
+        </div>
+        
+        <div class="card">
+            <h2>Próximamente</h2>
+            <p>Nuevas funcionalidades en desarrollo</p>
+            <a class="btn disabled">Próximamente</a>
+        </div>
+    </main>
+</body>
+</html>
