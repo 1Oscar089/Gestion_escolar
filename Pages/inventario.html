@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario Escolar</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1a4c8a;
+            color: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 20px;
+            background-color: rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .home-icon {
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
+
+        .main-content {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        input, button {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+        }
+
+        input {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        button {
+            background-color: white;
+            color: #1a4c8a;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            color: #1a4c8a;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #1a4c8a;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <a href="../index.html"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTIgNi40MTJMNS4yOSAxMy4xMjEgMy43MSAxMS41NCAxMiAzLjI1bDguMjkgOC4yOS0xLjU3IDEuNTd6bTAgN0wxOC41OSAxOSA3IDcuNDEgOC40MSA2IDEyIDkuNTggMTUuNTkgNiAxNyA3LjQxeiIgZmlsbD0id2hpdGUiLz48L3N2Zz4=" class="home-icon"></a>
+        <h1>Inventario Escolar</h1>
+    </div>
+
+    <div class="main-content">
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Buscar o agregar artículo...">
+            <button onclick="buscarArticulo()">Buscar</button>
+            <button onclick="manejarIngreso()">Ingreso</button>
+            <button onclick="manejarEgreso()">Egreso</button>
+            <button onclick="eliminarRegistro()">Eliminar</button>
+        </div>
+
+        <div class="table-container">
+            <table id="inventarioTable">
+                <thead>
+                    <tr>
+                        <th>Artículo</th>
+                        <th>Cantidad</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, deleteDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCcS8N9sFWCBzSH0LL6lH99lsDPW5Ct2Js",
+            authDomain: "gestion-escolar-d1a02.firebaseapp.com",
+            projectId: "gestion-escolar-d1a02",
+            storageBucket: "gestion-escolar-d1a02.appspot.com",
+            messagingSenderId: "644987757581",
+            appId: "1:644987757581:web:ea2de7ff99a1310c03a144",
+            measurementId: "G-3QR54M73SQ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const inventarioRef = collection(db, "inventario");
+
+        // Capitalizar input
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            let words = e.target.value.split(' ');
+            words = words.map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
+            e.target.value = words.join(' ');
+        });
+
+        // Actualizar tabla en tiempo real
+        onSnapshot(inventarioRef, (snapshot) => {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${data.nombre}</td>
+                        <td>${data.cantidad}</td>
+                    </tr>
+                `;
+            });
+        });
+
+        window.buscarArticulo = async () => {
+            const nombre = document.getElementById('searchInput').value;
+            const q = query(inventarioRef, where("nombre", "==", nombre));
+            const snapshot = await getDocs(q);
+            if (!snapshot.empty) {
+                alert("Artículo encontrado");
+            } else {
+                alert("Artículo no encontrado");
+            }
+        };
+
+        window.manejarIngreso = async () => {
+            const nombre = document.getElementById('searchInput').value;
+            if (!nombre) return;
+
+            const q = query(inventarioRef, where("nombre", "==", nombre));
+            const snapshot = await getDocs(q);
+
+            if (!snapshot.empty) {
+                const cantidad = parseInt(prompt("Ingrese la cantidad a agregar:"));
+                if (cantidad > 0) {
+                    const docRef = doc(db, "inventario", snapshot.docs[0].id);
+                    await updateDoc(docRef, {
+                        cantidad: snapshot.docs[0].data().cantidad + cantidad
+                    });
+                }
+            } else {
+                const confirmar = confirm("¿Crear nuevo registro?");
+                if (confirmar) {
+                    const cantidad = parseInt(prompt("Ingrese la cantidad inicial:"));
+                    await setDoc(doc(inventarioRef), {
+                        nombre: nombre,
+                        cantidad: cantidad
+                    });
+                }
+            }
+        };
+
+        window.manejarEgreso = async () => {
+            const nombre = document.getElementById('searchInput').value;
+            if (!nombre) return;
+
+            const q = query(inventarioRef, where("nombre", "==", nombre));
+            const snapshot = await getDocs(q);
+
+            if (!snapshot.empty) {
+                const cantidadActual = snapshot.docs[0].data().cantidad;
+                const cantidad = parseInt(prompt("Ingrese la cantidad a retirar:"));
+                if (cantidad > 0 && cantidad <= cantidadActual) {
+                    const docRef = doc(db, "inventario", snapshot.docs[0].id);
+                    await updateDoc(docRef, {
+                        cantidad: cantidadActual - cantidad
+                    });
+                } else {
+                    alert("Cantidad inválida o insuficiente");
+                }
+            } else {
+                alert("Artículo no existe");
+            }
+        };
+
+        window.eliminarRegistro = async () => {
+            const nombre = document.getElementById('searchInput').value;
+            if (!nombre) return;
+
+            const q = query(inventarioRef, where("nombre", "==", nombre));
+            const snapshot = await getDocs(q);
+
+            if (!snapshot.empty) {
+                const confirmar = confirm("¿Eliminar permanentemente este registro?");
+                if (confirmar) {
+                    const docRef = doc(db, "inventario", snapshot.docs[0].id);
+                    await deleteDoc(docRef);
+                }
+            } else {
+                alert("Artículo no encontrado");
+            }
+        };
+    </script>
+</body>
+</html>
