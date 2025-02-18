@@ -95,6 +95,7 @@
 
         tr:hover {
             background-color: #f5f5f5;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -177,12 +178,18 @@
             items.sort((a, b) => a.nombre.localeCompare(b.nombre));
             
             items.forEach(data => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${data.nombre}</td>
-                        <td>${data.cantidad}</td>
-                    </tr>
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${data.nombre}</td>
+                    <td>${data.cantidad}</td>
                 `;
+                
+                // Agregar evento de clic a la fila
+                row.addEventListener('click', () => {
+                    document.getElementById('searchInput').value = data.nombre;
+                });
+                
+                tbody.appendChild(row);
             });
         });
 
