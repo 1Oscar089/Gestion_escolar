@@ -78,18 +78,23 @@
             width: 100%;
             border-collapse: collapse;
             background-color: white;
-            color: #1a4c8a;
+            color: black;
         }
 
         th, td {
             padding: 12px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border: 1px solid black;
         }
 
         th {
             background-color: #1a4c8a;
             color: white;
+            border: 1px solid black;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
         }
     </style>
 </head>
@@ -158,12 +163,20 @@
             filtrarTabla(e.target.value);
         });
 
-        // Actualizar tabla en tiempo real
+        // Actualizar tabla en tiempo real y ordenar alfabéticamente
         onSnapshot(inventarioRef, (snapshot) => {
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '';
+            
+            // Convertir snapshot a array y ordenar
+            const items = [];
             snapshot.forEach(doc => {
-                const data = doc.data();
+                items.push(doc.data());
+            });
+            
+            items.sort((a, b) => a.nombre.localeCompare(b.nombre));
+            
+            items.forEach(data => {
                 tbody.innerHTML += `
                     <tr>
                         <td>${data.nombre}</td>
