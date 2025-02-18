@@ -102,7 +102,6 @@
     <div class="main-content">
         <div class="search-container">
             <input type="text" id="searchInput" placeholder="Buscar o agregar artículo...">
-            <button onclick="buscarArticulo()">Buscar</button>
             <button onclick="manejarIngreso()">Ingreso</button>
             <button onclick="manejarEgreso()">Egreso</button>
             <button onclick="eliminarRegistro()">Eliminar</button>
@@ -156,6 +155,7 @@
             let words = e.target.value.split(' ');
             words = words.map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase());
             e.target.value = words.join(' ');
+            filtrarTabla(e.target.value);
         });
 
         // Actualizar tabla en tiempo real
@@ -173,15 +173,17 @@
             });
         });
 
-        window.buscarArticulo = async () => {
-            const nombre = document.getElementById('searchInput').value;
-            const q = query(inventarioRef, where("nombre", "==", nombre));
-            const snapshot = await getDocs(q);
-            if (!snapshot.empty) {
-                alert("Artículo encontrado");
-            } else {
-                alert("Artículo no encontrado");
-            }
+        // Filtrar tabla según el texto ingresado
+        const filtrarTabla = (texto) => {
+            const filas = document.querySelectorAll("#tableBody tr");
+            filas.forEach(fila => {
+                const nombre = fila.querySelector("td").textContent.toLowerCase();
+                if (nombre.includes(texto.toLowerCase())) {
+                    fila.style.display = "";
+                } else {
+                    fila.style.display = "none";
+                }
+            });
         };
 
         window.manejarIngreso = async () => {
