@@ -16,7 +16,9 @@
             margin: 0;
             background-color: white;
             padding: 0;
-            position: relative; /* Para posicionar el ícono correctamente */
+            position: relative;
+            max-width: 100%;
+            overflow-x: hidden;
         }
         .header {
             background-color: #1a4c8a;
@@ -25,19 +27,27 @@
             text-align: center;
             margin-bottom: 20px;
         }
+        .header h1 {
+            font-size: clamp(1.2rem, 4vw, 2rem);
+            margin: 0;
+            padding: 0;
+        }
         .options {
             display: flex;
+            flex-wrap: wrap;
             gap: 10px;
-            margin-bottom: 20px;
+            margin: 0 10px 20px 10px;
         }
         .option-button {
             background-color: #1a4c8a;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 10px;
             border-radius: 4px;
             cursor: pointer;
-            flex: 1;
+            flex: 1 1 200px;
+            min-width: 150px;
+            white-space: nowrap;
         }
         .option-button:hover {
             background-color: #0052a3;
@@ -47,6 +57,7 @@
             padding: 20px;
             background-color: #f8f9fa;
             border-radius: 4px;
+            margin: 0 10px;
         }
         .form-group {
             margin-bottom: 15px;
@@ -61,6 +72,7 @@
             padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
+            box-sizing: border-box;
         }
         .save-button {
             background-color: #28a745;
@@ -70,23 +82,33 @@
             border-radius: 4px;
             cursor: pointer;
             margin-top: 20px;
+            width: 100%;
         }
         .save-button:hover {
             background-color: #218838;
         }
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 20px;
+            -webkit-overflow-scrolling: touch;
+        }
         table {
             width: 100%;
+            min-width: 800px;
             border-collapse: collapse;
-            margin-top: 20px;
         }
         th, td {
             border: 1px solid #ddd;
             padding: 8px;
             text-align: left;
+            white-space: nowrap;
         }
         th {
             background-color: #1a4c8a;
             color: white;
+            position: sticky;
+            top: 0;
         }
         tr:nth-child(even) {
             background-color: #f8f9fa;
@@ -97,7 +119,7 @@
         }
         .checkbox-group {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 10px;
             margin-bottom: 15px;
         }
@@ -113,6 +135,17 @@
             display: block;
             margin-top: 5px;
             color: #666;
+        }
+        @media (max-width: 768px) {
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+            .section {
+                padding: 10px;
+            }
+            .header {
+                padding: 10px;
+            }
         }
     </style>
 </head>
