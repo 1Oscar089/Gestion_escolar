@@ -97,6 +97,23 @@
             background-color: #f5f5f5;
             cursor: pointer;
         }
+
+        .delete-btn {
+            color: red;
+            cursor: pointer;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        .delete-btn:hover {
+            color: darkred;
+        }
+
+        .cantidad-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -164,6 +181,20 @@
             filtrarTabla(e.target.value);
         });
 
+        // Función para eliminar un registro específico
+        const eliminarRegistroEspecifico = async (nombre) => {
+            const q = query(inventarioRef, where("nombre", "==", nombre));
+            const snapshot = await getDocs(q);
+
+            if (!snapshot.empty) {
+                const confirmar = confirm(`¿Eliminar permanentemente el artículo "${nombre}"?`);
+                if (confirmar) {
+                    const docRef = doc(db, "inventario", snapshot.docs[0].id);
+                    await deleteDoc(docRef);
+                }
+            }
+        };
+
         // Actualizar tabla en tiempo real y ordenar alfabéticamente
         onSnapshot(inventarioRef, (snapshot) => {
             const tbody = document.getElementById('tableBody');
@@ -172,21 +203,40 @@
             // Convertir snapshot a array y ordenar
             const items = [];
             snapshot.forEach(doc => {
-                items.push(doc.data());
+                items.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
             });
             
             items.sort((a, b) => a.nombre.localeCompare(b.nombre));
             
             items.forEach(data => {
                 const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${data.nombre}</td>
-                    <td>${data.cantidad}</td>
+                const cantidadContainer = `
+                    <div class="cantidad-container">
+                        <span>${data.cantidad}</span>
+                        <span class="delete-btn" title="Eliminar artículo">✕</span>
+                    </div>
                 `;
                 
-                // Agregar evento de clic a la fila
-                row.addEventListener('click', () => {
-                    document.getElementById('searchInput').value = data.nombre;
+                row.innerHTML = `
+                    <td>${data.nombre}</td>
+                    <td>${cantidadContainer}</td>
+                `;
+                
+                // Agregar evento de clic a la fila para seleccionar
+                row.addEventListener('click', (e) => {
+                    // Solo seleccionar si no se hizo clic en el botón de eliminar
+                    if (!e.target.classList.contains('delete-btn')) {
+                        document.getElementById('searchInput').value = data.nombre;
+                    }
+                });
+                
+                // Agregar evento de clic al botón de eliminar
+                row.querySelector('.delete-btn').addEventListener('click', (e) => {
+                    e.stopPropagation(); // Evitar que se seleccione la fila
+                    eliminarRegistroEspecifico(data.nombre);
                 });
                 
                 tbody.appendChild(row);
@@ -259,19 +309,7 @@
         window.eliminarRegistro = async () => {
             const nombre = document.getElementById('searchInput').value;
             if (!nombre) return;
-
-            const q = query(inventarioRef, where("nombre", "==", nombre));
-            const snapshot = await getDocs(q);
-
-            if (!snapshot.empty) {
-                const confirmar = confirm("¿Eliminar permanentemente este registro?");
-                if (confirmar) {
-                    const docRef = doc(db, "inventario", snapshot.docs[0].id);
-                    await deleteDoc(docRef);
-                }
-            } else {
-                alert("Artículo no encontrado");
-            }
+            await eliminarRegistroEspecifico(nombre);
         };
     </script>
 </body>
