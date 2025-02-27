@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Alimentos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #1a4c8a;
+            color: white;
+            padding: 15px 20px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        nav {
+            text-align: center;
+            padding: 10px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        nav button {
+            margin: 5px;
+            padding: 10px 20px;
+            background-color: #1a4c8a;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        nav button:hover {
+            background-color: #123456;
+        }
+
+        .content-section {
+            padding: 20px;
+            background-color: white;
+            margin: 20px auto;
+            max-width: 800px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #1a4c8a;
+            color: white;
+        }
+
+        input[type="month"], input[type="number"], input[type="text"], input[type="date"] {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #1a4c8a;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #123456;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: red;
+            font-size: 18px;
+            transition: color 0.3s ease;
+        }
+
+        .delete-btn:hover {
+            color: darkred;
+        }
+
+        .small-table {
+            width: 70%;
+            margin: 0 auto;
+        }
+
+        .small-table input {
+            width: 90%;
+        }
+
+        .historial-table {
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .historial-table th, .historial-table td {
+            padding: 10px;
+        }
+
+        .historial-table th {
+            background-color: #1a4c8a;
+            color: white;
+        }
+
+        .historial-table tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .historial-table tr:hover {
+            background-color: #f1f1f1;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script type="module">
+        // Firebase configuration and initialization
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCcS8N9sFWCBzSH0LL6lH99lsDPW5Ct2Js",
+            authDomain: "gestion-escolar-d1a02.firebaseapp.com",
+            projectId: "gestion-escolar-d1a02",
+            storageBucket: "gestion-escolar-d1a02.appspot.com",
+            messagingSenderId: "644987757581",
+            appId: "1:644987757581:web:ea2de7ff99a1310c03a144",
+            measurementId: "G-3QR54M73SQ"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Function to save informe
+        async function saveInforme(data) {
+            try {
+                const docRef = await addDoc(collection(db, "informes"), data);
+                console.log("Document written with ID: ", docRef.id);
+                return true;
+            } catch (e) {
+                console.error("Error adding document: ", e);
+                return false;
+            }
+        }
+
+        // Function to fetch informes
+        async function fetchInformes(mes, anio) {
+            const querySnapshot = await getDocs(collection(db, "informes"));
+            const informes = [];
+            querySnapshot.forEach((doc) => {
+                const informe = doc.data();
+                if (informe.mes === mes && informe.anio === anio) {
+                    informes.push({ id: doc.id, ...informe });
+                }
+            });
+            return informes;
+        }
+
+        // Function to delete informe
+        async function deleteInforme(informeId) {
+            try {
+                await deleteDoc(doc(db, "informes", informeId));
+                console.log("Document deleted");
+                return true;
+            } catch (e) {
+                console.error("Error deleting document: ", e);
+                return false;
+            }
+        }
+
+        // Expose functions to the global scope
+        window.saveInforme = saveInforme;
+        window.fetchInformes = fetchInformes;
+        window.deleteInforme = deleteInforme;
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Gestión de Alimentos</h1>
+    </header>
+    <nav>
+        <button onclick="showSection('informe')">Informe</button>
+        <button onclick="showSection('historial')">Historial</button>
+    </nav>
+    <section id="informe" class="content-section">
+        <h2>Informe</h2>
+        <form id="informeForm">
+            <label for="fecha">Fecha (Mes y Año):</label>
+            <input type="month" id="fecha" name="fecha" required>
+            <table id="alimentosTable" class="small-table">
+                <thead>
+                    <tr>
+                        <th>Alimento</th>
+                        <th>Cantidad (kg)</th>
+                        <th>Lote</th>
+                        <th>Fecha de Vencimiento</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Rows with predefined alimentos -->
+                    <tr>
+                        <td>Arroz</td>
+                        <td><input type="number" required></td>
+                        <td><input type="text" required></td>
+                        <td><input type="date" required></td>
+                    </tr>
+                    <tr>
+                        <td>Frijol</td>
+                        <td><input type="number" required></td>
+                        <td><input type="text" required></td>
+                        <td><input type="date" required></td>
+                    </tr>
+                    <tr>
+                        <td>Leche</td>
+                        <td><input type="number" required></td>
+                        <td><input type="text" required></td>
+                        <td><input type="date" required></td>
+                    </tr>
+                    <tr>
+                        <td>Biofortik</td>
+                        <td><input type="number" required></td>
+                        <td><input type="text" required></td>
+                        <td><input type="date" required></td>
+                    </tr>
+                    <tr>
+                        <td>Cereal</td>
+                        <td><input type="number" required></td>
+                        <td><input type="text" required></td>
+                        <td><input type="date" required></td>
+                    </tr>
+                    <tr>
+                        <td>Aceite</td>
+                        <td><input type="number" required></td>
+                        <td><input type="text" required></td>
+                        <td><input type="date" required></td>
+                    </tr>
+                    <tr>
+                        <td>Azúcar</td>
+                        <td><input type="number" required></td>
+                        <td><input type="text" required></td>
+                        <td><input type="date" required></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button type="button" onclick="confirmSave()">Generar Informe</button>
+        </form>
+    </section>
+    <section id="historial" class="content-section" style="display:none;">
+        <h2>Historial de Informes</h2>
+        <label for="searchFecha">Fecha (Mes y Año):</label>
+        <input type="month" id="searchFecha" name="searchFecha" required>
+        <button onclick="searchInformes()">Buscar</button>
+        <table id="historialTable" class="historial-table">
+            <thead>
+                <tr>
+                    <th>Alimento</th>
+                    <th>Cantidad (kg)</th>
+                    <th>Lote</th>
+                    <th>Fecha de Vencimiento</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be dynamically added here -->
+            </tbody>
+        </table>
+    </section>
+    <script>
+        // JavaScript functions
+        function showSection(sectionId) {
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            document.getElementById(sectionId).style.display = 'block';
+        }
+
+        async function confirmSave() {
+            const fecha = document.getElementById('fecha').value;
+            const [anio, mes] = fecha.split('-');
+            if (confirm(`¿Está seguro de guardar informe de ${mes}/${anio}?`)) {
+                const saved = await saveInformeData(mes, anio);
+                if (saved) {
+                    alert("Informe guardado correctamente.");
+                    generatePDF();
+                } else {
+                    alert("Error al guardar el informe.");
+                }
+            }
+        }
+
+        async function saveInformeData(mes, anio) {
+            const rows = document.querySelectorAll('#alimentosTable tbody tr');
+            const data = [];
+
+            rows.forEach(row => {
+                const alimento = row.querySelector('td').textContent;
+                const cantidad = row.querySelector('input[type="number"]').value;
+                const lote = row.querySelector('input[type="text"]').value;
+                const fechaVencimiento = row.querySelector('input[type="date"]').value;
+
+                data.push({
+                    alimento,
+                    cantidad,
+                    lote,
+                    fechaVencimiento
+                });
+            });
+
+            const informeData = { mes, anio, data };
+            return await saveInforme(informeData);
+        }
+
+        function generatePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const table = document.getElementById('alimentosTable');
+            doc.html(table, {
+                callback: function (doc) {
+                    doc.save('informe.pdf');
+                },
+                x: 10,
+                y: 10,
+                width: 180, // Adjust width to fit all columns
+                windowWidth: table.offsetWidth // Ensure the table fits
+            });
+        }
+
+        async function searchInformes() {
+            const fecha = document.getElementById('searchFecha').value;
+            const [anio, mes] = fecha.split('-');
+            const informes = await fetchInformes(mes, anio);
+            const historialTable = document.getElementById('historialTable').getElementsByTagName('tbody')[0];
+            historialTable.innerHTML = '';
+
+            informes.forEach(informe => {
+                informe.data.forEach(item => {
+                    const newRow = historialTable.insertRow();
+                    newRow.innerHTML = `
+                        <td>${item.alimento}</td>
+                        <td>${item.cantidad}</td>
+                        <td>${item.lote}</td>
+                        <td>${item.fechaVencimiento}</td>
+                        <td>
+                            <button class="delete-btn" onclick="confirmDelete('${informe.id}')">🗑️</button>
+                        </td>
+                    `;
+                });
+            });
+        }
+
+        async function confirmDelete(informeId) {
+            if (confirm("¿Está seguro de eliminar este registro?")) {
+                const deleted = await deleteInforme(informeId);
+                if (deleted) {
+                    alert("Registro eliminado correctamente.");
+                    searchInformes(); // Refresh the table
+                } else {
+                    alert("Error al eliminar el registro.");
+                }
+            }
+        }
+    </script>
+</body>
+</html>
