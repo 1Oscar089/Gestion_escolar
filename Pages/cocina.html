@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago de Cocina</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #1a4c8a;
+            --white-color: #ffffff;
+            --light-gray: #f5f7fa;
+            --border-color: #e0e0e0;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light-gray);
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        header h1 {
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+        }
+        
+        nav {
+            background-color: var(--primary-color);
+            border-top: 1px solid rgba(255,255,255,0.2);
+            padding: 10px 0;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .nav-item {
+            color: var(--white-color);
+            text-decoration: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        
+        .nav-item:hover, .nav-item.active {
+            background-color: rgba(255,255,255,0.2);
+        }
+        
+        .section {
+            background-color: var(--white-color);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: none;
+        }
+        
+        .section.active {
+            display: block;
+        }
+        
+        .status-cards {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .status-card {
+            flex: 1;
+            min-width: 200px;
+            background-color: var(--white-color);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            border-left: 5px solid var(--primary-color);
+        }
+        
+        .status-card h3 {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 15px;
+        }
+        
+        .status-card .amount {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .status-card.ingreso {
+            border-left-color: var(--success-color);
+        }
+        
+        .status-card.ingreso .amount {
+            color: var(--success-color);
+        }
+        
+        .status-card.egreso {
+            border-left-color: var(--danger-color);
+        }
+        
+        .status-card.egreso .amount {
+            color: var(--danger-color);
+        }
+        
+        .status-card.saldo {
+            border-left-color: var(--warning-color);
+        }
+        
+        .status-card.saldo .amount {
+            color: var(--warning-color);
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .input-group input, .input-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .input-group input:focus, .input-group textarea:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+        
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .search-container input {
+            flex: 1;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            background-color: var(--primary-color);
+            color: var(--white-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #0d3d74;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+        
+        .btn-danger:hover {
+            background-color: #bd2130;
+        }
+        
+        .results-container {
+            margin-top: 20px;
+        }
+        
+        .parent-card {
+            background-color: var(--white-color);
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .parent-card .name {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .parent-card .amount {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        table th, table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        table th {
+            background-color: var(--primary-color);
+            color: var(--white-color);
+        }
+        
+        table tr:hover {
+            background-color: var(--light-gray);
+        }
+        
+        .action-btn {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        
+        .modal-content {
+            background-color: var(--white-color);
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            width: 80%;
+            max-width: 500px;
+        }
+        
+        .modal-title {
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+        
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Pago de Cocina</h1>
+            <nav>
+                <a class="nav-item active" data-section="inicio">Inicio</a>
+                <a class="nav-item" data-section="ingreso">Ingreso</a>
+                <a class="nav-item" data-section="egreso">Egreso</a>
+                <a class="nav-item" data-section="historial">Historial</a>
+            </nav>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Sección de Inicio -->
+        <section id="inicio" class="section active">
+            <h2>Estado General</h2>
+            <div class="status-cards">
+                <div class="status-card ingreso">
+                    <h3>Ingreso Total</h3>
+                    <div class="amount" id="total-ingreso">$0.00</div>
+                </div>
+                <div class="status-card egreso">
+                    <h3>Egreso Total</h3>
+                    <div class="amount" id="total-egreso">$0.00</div>
+                </div>
+                <div class="status-card saldo">
+                    <h3>Saldo Actual</h3>
+                    <div class="amount" id="saldo-actual">$0.00</div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Sección de Ingreso -->
+        <section id="ingreso" class="section">
+            <h2>Registro de Ingresos</h2>
+            <div class="status-card ingreso">
+                <h3>Total de Ingresos</h3>
+                <div class="amount" id="ingreso-total">$0.00</div>
+            </div>
+            
+            <div class="search-container">
+                <div class="input-group">
+                    <input type="text" id="search-parent" placeholder="Buscar padre de familia..." autocomplete="off">
+                </div>
+                <button id="add-ingreso" class="btn">Agregar Ingreso</button>
+            </div>
+            
+            <div class="results-container" id="search-results">
+                <!-- Aquí se mostrarán los resultados de la búsqueda -->
+            </div>
+        </section>
+        
+        <!-- Sección de Egreso -->
+        <section id="egreso" class="section">
+            <h2>Registro de Egresos</h2>
+            
+            <!-- Tarjetas de estado para Egreso -->
+            <div class="status-cards">
+                <div class="status-card saldo">
+                    <h3>Efectivo Disponible</h3>
+                    <div class="amount" id="efectivo-disponible">$0.00</div>
+                </div>
+                <div class="status-card egreso">
+                    <h3>Total de Egresos</h3>
+                    <div class="amount" id="egreso-total">$0.00</div>
+                </div>
+            </div>
+            
+            <!-- Formulario para agregar egresos -->
+            <div class="input-group">
+                <label for="egreso-cantidad">Cantidad</label>
+                <input type="number" id="egreso-cantidad" placeholder="Ingrese la cantidad...">
+            </div>
+            
+            <div class="input-group">
+                <label for="egreso-descripcion">Descripción</label>
+                <textarea id="egreso-descripcion" rows="3" placeholder="Describa para qué se utilizó el monto..."></textarea>
+            </div>
+            
+            <div class="input-group">
+                <label for="egreso-fecha">Fecha</label>
+                <input type="date" id="egreso-fecha">
+            </div>
+            
+            <button id="add-egreso" class="btn">Agregar Egreso</button>
+            <button id="show-egresos" class="btn">Mostrar Egresos</button>
+            
+            <!-- Tabla de egresos -->
+            <table id="egresos-table" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Descripción</th>
+                        <th>Cantidad</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="egresos-body">
+                    <!-- Aquí se cargarán los egresos -->
+                </tbody>
+            </table>
+        </section>
+        
+        <!-- Sección de Historial -->
+        <section id="historial" class="section">
+            <h2>Historial de Pagos</h2>
+            <table id="historial-table">
+                <thead>
+                    <tr>
+                        <th>Padre de Familia</th>
+                        <th>Monto Total</th>
+                        <th>Fecha de Pago</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="historial-body">
+                    <!-- Aquí se cargarán los datos -->
+                </tbody>
+            </table>
+        </section>
+    </div>
+    
+    <!-- Modal para Agregar Ingreso -->
+    <div id="modal-ingreso" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 class="modal-title">Agregar Ingreso</h3>
+            
+            <div class="input-group">
+                <label for="ingreso-nombre">Padre de Familia</label>
+                <input type="text" id="ingreso-nombre" readonly>
+            </div>
+            
+            <div class="input-group">
+                <label for="ingreso-monto">Monto a Ingresar ($)</label>
+                <input type="number" id="ingreso-monto" placeholder="Ingrese el monto...">
+            </div>
+            
+            <div class="modal-actions">
+                <button id="cancel-ingreso" class="btn btn-danger">Cancelar</button>
+                <button id="confirm-ingreso" class="btn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para Confirmar Ingreso -->
+    <div id="modal-confirm" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 class="modal-title">Confirmar Pago</h3>
+            
+            <p id="confirm-message"></p>
+            
+            <div class="input-group">
+                <label for="ingreso-fecha">Fecha de Pago</label>
+                <input type="date" id="ingreso-fecha">
+            </div>
+            
+            <div class="modal-actions">
+                <button id="cancel-confirm" class="btn btn-danger">Cancelar</button>
+                <button id="save-ingreso" class="btn">Guardar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para Eliminar Registro -->
+    <div id="modal-delete" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 class="modal-title">Eliminar Registro</h3>
+            
+            <p>¿Está seguro que desea eliminar este registro?</p>
+            
+            <div class="modal-actions">
+                <button id="cancel-delete" class="btn btn-danger">Cancelar</button>
+                <button id="confirm-delete" class="btn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-analytics.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/11.3.1/firebase-firestore.js";
+        
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCcS8N9sFWCBzSH0LL6lH99lsDPW5Ct2Js",
+            authDomain: "gestion-escolar-d1a02.firebaseapp.com",
+            projectId: "gestion-escolar-d1a02",
+            storageBucket: "gestion-escolar-d1a02.firebasestorage.app",
+            messagingSenderId: "644987757581",
+            appId: "1:644987757581:web:ea2de7ff99a1310c03a144",
+            measurementId: "G-3QR54M73SQ"
+        };
+        
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        
+        // Referencias a las colecciones de Firebase
+        const padresRef = collection(db, "padres");
+        const egresosRef = collection(db, "egresos");
+        
+        // Variables globales
+        let selectedParentId = null;
+        let selectedEgresoId = null;
+        let totalIngresos = 0;
+        let totalEgresos = 0;
+        let padresList = [];
+        let egresosList = [];
+        
+        // Elementos DOM
+        const navItems = document.querySelectorAll('.nav-item');
+        const sections = document.querySelectorAll('.section');
+        const searchInput = document.getElementById('search-parent');
+        const searchResults = document.getElementById('search-results');
+        const addIngresoBtn = document.getElementById('add-ingreso');
+        const addEgresoBtn = document.getElementById('add-egreso');
+        const showEgresosBtn = document.getElementById('show-egresos');
+        const totalIngresoDisplay = document.getElementById('total-ingreso');
+        const ingresoTotalDisplay = document.getElementById('ingreso-total');
+        const totalEgresoDisplay = document.getElementById('total-egreso');
+        const egresoTotalDisplay = document.getElementById('egreso-total');
+        const saldoActualDisplay = document.getElementById('saldo-actual');
+        const efectivoDisponibleDisplay = document.getElementById('efectivo-disponible');
+        const historialBody = document.getElementById('historial-body');
+        const egresosBody = document.getElementById('egresos-body');
+        const egresosTable = document.getElementById('egresos-table');
+        
+        // Modales
+        const modalIngreso = document.getElementById('modal-ingreso');
+        const modalConfirm = document.getElementById('modal-confirm');
+        const modalDelete = document.getElementById('modal-delete');
+        const closeButtons = document.querySelectorAll('.close');
+        
+        // Inicialización
+        window.addEventListener('DOMContentLoaded', async () => {
+            // Cargar datos iniciales
+            await loadData();
+            updateTotals();
+            
+            // Configurar navegación
+            navItems.forEach(item => {
+                item.addEventListener('click', () => {
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    const sectionId = item.getAttribute('data-section');
+                    sections.forEach(section => {
+                        section.classList.remove('active');
+                        if (section.id === sectionId) {
+                            section.classList.add('active');
+                        }
+                    });
+                });
+            });
+            
+            // Configurar búsqueda de padres
+            searchInput.addEventListener('input', () => {
+                const searchTerm = capitalizeWords(searchInput.value.trim());
+                searchParents(searchTerm);
+            });
+            
+            // Capitalizar palabras automáticamente
+            searchInput.addEventListener('keyup', (e) => {
+                e.target.value = capitalizeWords(e.target.value);
+            });
+            
+            // Agregar ingreso
+            addIngresoBtn.addEventListener('click', () => {
+                if (!searchInput.value.trim()) {
+                    alert('Por favor, busque un padre de familia primero.');
+                    return;
+                }
+                
+                const selectedParent = padresList.find(padre => 
+                    padre.nombre.toLowerCase() === searchInput.value.toLowerCase());
+                
+                if (selectedParent) {
+                    document.getElementById('ingreso-nombre').value = selectedParent.nombre;
+                    selectedParentId = selectedParent.id;
+                    openModal(modalIngreso);
+                } else {
+                    // Si no existe, preguntar si desea crear nuevo padre
+                    if (confirm(`¿Desea registrar a "${searchInput.value}" como nuevo padre de familia?`)) {
+                        document.getElementById('ingreso-nombre').value = searchInput.value;
+                        selectedParentId = null;
+                        openModal(modalIngreso);
+                    }
+                }
+            });
+            
+            // Confirmar ingreso
+            document.getElementById('confirm-ingreso').addEventListener('click', () => {
+                const nombre = document.getElementById('ingreso-nombre').value;
+                const monto = parseFloat(document.getElementById('ingreso-monto').value);
+                
+                if (!monto || monto <= 0) {
+                    alert('Por favor, ingrese un monto válido.');
+                    return;
+                }
+                
+                const confirmMessage = `El señor(a) "${nombre}" ha pagado $${monto.toFixed(2)}`;
+                document.getElementById('confirm-message').textContent = confirmMessage;
+                
+                closeModal(modalIngreso);
+                openModal(modalConfirm);
+                
+                // Establecer fecha actual
+                const today = new Date();
+                const formattedDate = today.toISOString().substring(0, 10);
+                document.getElementById('ingreso-fecha').value = formattedDate;
+            });
+            
+            // Guardar ingreso
+            document.getElementById('save-ingreso').addEventListener('click', async () => {
+                const nombre = document.getElementById('ingreso-nombre').value;
+                const monto = parseFloat(document.getElementById('ingreso-monto').value);
+                const fecha = document.getElementById('ingreso-fecha').value;
+                
+                if (!fecha) {
+                    alert('Por favor, seleccione una fecha.');
+                    return;
+                }
+                
+                try {
+                    if (selectedParentId) {
+                        // Actualizar padre existente
+                        const parentRef = doc(db, "padres", selectedParentId);
+                        const selectedParent = padresList.find(p => p.id === selectedParentId);
+                        const nuevoMonto = selectedParent.monto + monto;
+                        
+                        await updateDoc(parentRef, {
+                            monto: nuevoMonto,
+                            ultimoPago: fecha
+                        });
+                    } else {
+                        // Crear nuevo padre
+                        await addDoc(padresRef, {
+                            nombre: nombre,
+                            monto: monto,
+                            ultimoPago: fecha
+                        });
+                    }
+                    
+                    closeModal(modalConfirm);
+                    searchInput.value = '';
+                    searchResults.innerHTML = '';
+                    await loadData();
+                    updateTotals();
+                    alert('Ingreso registrado correctamente.');
+                } catch (error) {
+                    console.error("Error al guardar ingreso:", error);
+                    alert('Error al registrar el ingreso. Intente nuevamente.');
+                }
+            });
+            
+            // Agregar egreso
+            addEgresoBtn.addEventListener('click', async () => {
+                const cantidad = parseFloat(document.getElementById('egreso-cantidad').value);
+                const descripcion = document.getElementById('egreso-descripcion').value;
+                const fecha = document.getElementById('egreso-fecha').value;
+                
+                if (!cantidad || cantidad <= 0) {
+                    alert('Por favor, ingrese una cantidad válida.');
+                    return;
+                }
+                
+                if (!descripcion.trim()) {
+                    alert('Por favor, ingrese una descripción del egreso.');
+                    return;
+                }
+                
+                if (!fecha) {
+                    alert('Por favor, seleccione una fecha.');
+                    return;
+                }
+                
+                if (cantidad > (totalIngresos - totalEgresos)) {
+                    alert('No hay suficiente saldo disponible para realizar este egreso.');
+                    return;
+                }
+                
+                try {
+                    await addDoc(egresosRef, {
+                        cantidad: cantidad,
+                        descripcion: descripcion,
+                        fecha: fecha
+                    });
+                    
+                    document.getElementById('egreso-cantidad').value = '';
+                    document.getElementById('egreso-descripcion').value = '';
+                    document.getElementById('egreso-fecha').value = '';
+                    
+                    await loadData();
+                    updateTotals();
+                    alert('Egreso registrado correctamente.');
+                } catch (error) {
+                    console.error("Error al guardar egreso:", error);
+                    alert('Error al registrar el egreso. Intente nuevamente.');
+                }
+            });
+            
+            // Mostrar egresos
+            showEgresosBtn.addEventListener('click', () => {
+                egresosTable.style.display = egresosTable.style.display === 'none' ? 'table' : 'none';
+                renderEgresos();
+            });
+            
+            // Configurar eventos para cerrar modales
+            closeButtons.forEach(button => {
+                button.addEventListener('click', (e) => {
+                    const modal = e.target.closest('.modal');
+                    closeModal(modal);
+                });
+            });
+            
+            document.getElementById('cancel-ingreso').addEventListener('click', () => {
+                closeModal(modalIngreso);
+            });
+            
+            document.getElementById('cancel-confirm').addEventListener('click', () => {
+                closeModal(modalConfirm);
+            });
+            
+            document.getElementById('cancel-delete').addEventListener('click', () => {
+                closeModal(modalDelete);
+            });
+        });
+        
+        // Capitalizar palabras sin afectar letras después de la Ñ o caracteres acentuados
+        function capitalizeWords(text) {
+            return text.replace(/\b\w/g, char => {
+                // Si el carácter anterior es una Ñ o una vocal acentuada, no capitalizar
+                const prevChar = text.charAt(text.indexOf(char) - 1);
+                if (/[ñÑáéíóúÁÉÍÓÚ]/.test(prevChar)) {
+                    return char.toLowerCase();
+                }
+                return char.toUpperCase();
+            });
+        }
+        
+        // Cargar datos
+        async function loadData() {
+            try {
+                // Cargar padres ordenados por fecha
+                const padresQuery = query(padresRef, orderBy("ultimoPago", "asc"));
+                const padresSnapshot = await getDocs(padresQuery);
+                padresList = [];
+                totalIngresos = 0;
+                
+                padresSnapshot.forEach((doc) => {
+                    const padre = {
+                        id: doc.id,
+                        ...doc.data()
+                    };
+                    padresList.push(padre);
+                    totalIngresos += padre.monto || 0;
+                });
+                
+                // Cargar egresos ordenados por fecha (descendente)
+                const egresosQuery = query(egresosRef, orderBy("fecha", "desc"));
+                const egresosSnapshot = await getDocs(egresosQuery);
+                totalEgresos = 0;
+                egresosList = [];
+                
+                egresosSnapshot.forEach((doc) => {
+                    const egreso = {
+                        id: doc.id,
+                        ...doc.data()
+                    };
+                    egresosList.push(egreso);
+                    totalEgresos += egreso.cantidad || 0;
+                });
+                
+                // Actualizar historial
+                renderHistorial();
+            } catch (error) {
+                console.error("Error al cargar datos:", error);
+                alert('Error al cargar los datos. Intente nuevamente.');
+            }
+        }
+        
+        // Actualizar totales
+        function updateTotals() {
+            totalIngresoDisplay.textContent = `$${totalIngresos.toFixed(2)}`;
+            ingresoTotalDisplay.textContent = `$${totalIngresos.toFixed(2)}`;
+            totalEgresoDisplay.textContent = `$${totalEgresos.toFixed(2)}`;
+            egresoTotalDisplay.textContent = `$${totalEgresos.toFixed(2)}`;
+            
+            const saldoActual = totalIngresos - totalEgresos;
+            saldoActualDisplay.textContent = `$${saldoActual.toFixed(2)}`;
+            efectivoDisponibleDisplay.textContent = `$${saldoActual.toFixed(2)}`;
+        }
+        
+        // Buscar padres
+        function searchParents(term) {
+            searchResults.innerHTML = '';
+            
+            if (!term) return;
+            
+            const filteredPadres = padresList.filter(padre => 
+                padre.nombre.toLowerCase().includes(term.toLowerCase()));
+            
+            filteredPadres.forEach(padre => {
+                const parentCard = document.createElement('div');
+                parentCard.className = 'parent-card';
+                parentCard.innerHTML = `
+                    <div class="name">${padre.nombre}</div>
+                    <div class="amount">$${padre.monto.toFixed(2)}</div>
+                `;
+                
+                parentCard.addEventListener('click', () => {
+                    searchInput.value = padre.nombre;
+                    searchResults.innerHTML = '';
+                });
+                
+                searchResults.appendChild(parentCard);
+            });
+        }
+        
+        // Renderizar historial
+        function renderHistorial() {
+            historialBody.innerHTML = '';
+            
+            padresList.forEach(padre => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${padre.nombre}</td>
+                    <td>$${padre.monto.toFixed(2)}</td>
+                    <td>${padre.ultimoPago}</td>
+                    <td>
+                        <button class="action-btn delete-btn" data-id="${padre.id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                `;
+                
+                historialBody.appendChild(row);
+            });
+            
+            // Configurar eventos de eliminación
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    selectedParentId = btn.getAttribute('data-id');
+                    openModal(modalDelete);
+                });
+            });
+            
+            // Configurar eventos para confirmar eliminación
+            document.getElementById('confirm-delete').addEventListener('click', async () => {
+                try {
+                    await deleteDoc(doc(db, "padres", selectedParentId));
+                    closeModal(modalDelete);
+                    await loadData();
+                    updateTotals();
+                    alert('Registro eliminado correctamente.');
+                } catch (error) {
+                    console.error("Error al eliminar registro:", error);
+                    alert('Error al eliminar el registro. Intente nuevamente.');
+                }
+            });
+        }
+        
+        // Renderizar egresos
+        function renderEgresos() {
+            egresosBody.innerHTML = '';
+            
+            egresosList.forEach(egreso => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${egreso.descripcion}</td>
+                    <td>$${egreso.cantidad.toFixed(2)}</td>
+                    <td>${egreso.fecha}</td>
+                    <td>
+                        <button class="action-btn delete-egreso-btn" data-id="${egreso.id}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                `;
+                
+                egresosBody.appendChild(row);
+            });
+            
+            // Configurar eventos de eliminación de egresos
+            document.querySelectorAll('.delete-egreso-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const egresoId = btn.getAttribute('data-id');
+                    if (confirm('¿Está seguro que desea eliminar este egreso?')) {
+                        try {
+                            await deleteDoc(doc(db, "egresos", egresoId));
+                            await loadData();
+                            updateTotals();
+                            alert('Egreso eliminado correctamente.');
+                        } catch (error) {
+                            console.error("Error al eliminar egreso:", error);
+                            alert('Error al eliminar el egreso. Intente nuevamente.');
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Funciones para modales
+        function openModal(modal) {
+            modal.style.display = 'block';
+        }
+        
+        function closeModal(modal) {
+            modal.style.display = 'none';
+        }
+    </script>
+</body>
+</html>
