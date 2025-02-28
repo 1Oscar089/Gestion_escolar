@@ -272,6 +272,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // Función para mostrar secciones
         window.showSection = function(sectionId) {
             document.querySelectorAll('.section').forEach(section => {
                 section.style.display = 'none';
@@ -283,13 +284,14 @@
             }
         };
 
+        // Manejo del formulario de ingreso
         document.getElementById('ingresoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
             if (confirm('¿Está seguro de guardar este ingreso?')) {
                 const fechaInput = document.getElementById('fechaIngreso');
                 const fechaCorregida = new Date(fechaInput.value);
-                fechaCorregida.setMinutes(fechaCorregida.getMinutes() + fechaCorregida.getTimezoneOffset());
+                fechaCorregida.setMinutes(fechaCorregida.getMinutes() - fechaCorregida.getTimezoneOffset());
                 
                 const ingreso = {
                     fecha: fechaCorregida.toISOString().split('T')[0],
@@ -313,76 +315,14 @@
             }
         });
 
-        document.querySelectorAll('input[name="grado"], input[name="alimento"]').forEach(checkbox => {
-            checkbox.addEventListener('change', calcularEgreso);
-        });
-
-        document.getElementById('select-all-grados').addEventListener('change', function() {
-            const checkboxes = document.querySelectorAll('input[name="grado"]');
-            checkboxes.forEach(checkbox => {
-                checkbox.checked = this.checked;
-            });
-            calcularEgreso();
-        });
-
-        function calcularEgreso() {
-            let totalEstudiantes = 0;
-            let estudiantesBiofortik = 0;
-
-            document.querySelectorAll('input[name="grado"]:checked').forEach(checkbox => {
-                const estudiantes = parseInt(checkbox.dataset.students);
-                totalEstudiantes += estudiantes;
-                
-                const grado = checkbox.value;
-                if (grado === 'P4' || grado === 'P5' || grado === 'P6' || 
-                    grado === '1' || grado === '2' || grado === '3' || 
-                    grado === '4' || grado === '5' || grado === '6') {
-                    estudiantesBiofortik += estudiantes;
-                }
-            });
-
-            document.getElementById('lecheEgreso').textContent = "0";
-            document.getElementById('frijolEgreso').textContent = "0";
-            document.getElementById('arrozEgreso').textContent = "0";
-            document.getElementById('azucarEgreso').textContent = "0";
-            document.getElementById('aceiteEgreso').textContent = "0";
-            document.getElementById('cerealEgreso').textContent = "0";
-            document.getElementById('biofortikEgreso').textContent = "0";
-
-            document.querySelectorAll('input[name="alimento"]:checked').forEach(alimento => {
-                switch(alimento.value) {
-                    case 'leche':
-                        document.getElementById('lecheEgreso').textContent = ((totalEstudiantes * 30) / 1000).toFixed(2);
-                        break;
-                    case 'frijol':
-                        document.getElementById('frijolEgreso').textContent = ((totalEstudiantes * 20) / 1000).toFixed(2);
-                        break;
-                    case 'arroz':
-                        document.getElementById('arrozEgreso').textContent = ((totalEstudiantes * 25) / 1000).toFixed(2);
-                        break;
-                    case 'azucar':
-                        document.getElementById('azucarEgreso').textContent = ((totalEstudiantes * 12) / 1000).toFixed(2);
-                        break;
-                    case 'aceite':
-                        document.getElementById('aceiteEgreso').textContent = ((totalEstudiantes * 10) / 1000).toFixed(2);
-                        break;
-                    case 'cereal':
-                        document.getElementById('cerealEgreso').textContent = ((totalEstudiantes * 30) / 1000).toFixed(2);
-                        break;
-                    case 'biofortik':
-                        document.getElementById('biofortikEgreso').textContent = ((estudiantesBiofortik * 30) / 1000).toFixed(2);
-                        break;
-                }
-            });
-        }
-
+        // Manejo del formulario de egreso
         document.getElementById('egresoForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
             if (confirm('¿Está seguro de guardar este egreso?')) {
                 const fechaInput = document.getElementById('fechaEgreso');
                 const fechaCorregida = new Date(fechaInput.value);
-                fechaCorregida.setMinutes(fechaCorregida.getMinutes() + fechaCorregida.getTimezoneOffset());
+                fechaCorregida.setMinutes(fechaCorregida.getMinutes() - fechaCorregida.getTimezoneOffset());
                 
                 const egreso = {
                     fecha: fechaCorregida.toISOString().split('T')[0],
@@ -408,6 +348,7 @@
             }
         });
 
+        // Cargar historial mensual
         document.getElementById('mesHistorial').addEventListener('change', async (e) => {
             const mesSeleccionado = e.target.value;
             const [year, month] = mesSeleccionado.split('-');
@@ -430,6 +371,7 @@
             }
         });
 
+        // Cargar historial completo
         async function cargarHistorialCompleto() {
             const q = query(collection(db, 'kardex'), orderBy('fecha'));
             try {
@@ -441,6 +383,7 @@
             }
         }
 
+        // Función para mostrar el historial
         function mostrarHistorial(querySnapshot, containerId, includeDelete = false) {
             const container = document.getElementById(containerId);
 
@@ -480,8 +423,10 @@
 
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                const fecha = new Date(data.fecha).toLocaleDateString();
+                const fecha = new Date(data.fecha + 'T00:00:00'); // Asegurar la fecha correcta
+                const fechaFormateada = fecha.toLocaleDateString('es-ES', { timeZone: 'UTC' });
 
+                // Actualizar saldos
                 if (data.tipo === 'ingreso') {
                     Object.keys(saldos).forEach(key => {
                         saldos[key] += data[key] || 0;
@@ -494,7 +439,7 @@
 
                 html += `
                     <tr>
-                        <td>${fecha}</td>
+                        <td>${fechaFormateada}</td>
                         <td>${data.tipo.toUpperCase()}</td>
                         <td>${data.leche?.toFixed(2) || 0} (${saldos.leche.toFixed(2)})</td>
                         <td>${data.frijol?.toFixed(2) || 0} (${saldos.frijol.toFixed(2)})</td>
@@ -512,6 +457,7 @@
             container.innerHTML = html;
         }
 
+        // Función para eliminar registro
         window.eliminarRegistro = async function(docId) {
             if (confirm('¿Está seguro de eliminar este registro?')) {
                 try {
