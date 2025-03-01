@@ -287,8 +287,8 @@
         // Función para ajustar la fecha a la zona horaria local
         function ajustarFecha(fecha) {
             const fechaAjustada = new Date(fecha);
-            fechaAjustada.setMinutes(fechaAjustada.getMinutes() - fechaAjustada.getTimezoneOffset());
-            return fechaAjustada.toISOString().split('T')[0];
+            // Asegurar que la fecha no se convierta a UTC
+            return `${fechaAjustada.getFullYear()}-${String(fechaAjustada.getMonth() + 1).padStart(2, '0')}-${String(fechaAjustada.getDate()).padStart(2, '0')}`;
         }
 
         // Manejo del formulario de ingreso
@@ -300,7 +300,7 @@
                 const fechaCorregida = ajustarFecha(fechaInput.value);
                 
                 const ingreso = {
-                    fecha: fechaCorregida,
+                    fecha: fechaCorregida, // Guardar la fecha corregida
                     tipo: 'ingreso',
                     leche: parseFloat(document.getElementById('lecheIngreso').value),
                     frijol: parseFloat(document.getElementById('frijolIngreso').value),
@@ -330,7 +330,7 @@
                 const fechaCorregida = ajustarFecha(fechaInput.value);
                 
                 const egreso = {
-                    fecha: fechaCorregida,
+                    fecha: fechaCorregida, // Guardar la fecha corregida
                     tipo: 'egreso',
                     leche: parseFloat(document.getElementById('lecheEgreso').textContent),
                     frijol: parseFloat(document.getElementById('frijolEgreso').textContent),
