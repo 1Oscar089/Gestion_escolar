@@ -272,13 +272,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Función para ajustar la fecha a la zona horaria local
-        function ajustarFecha(fecha) {
-            const fechaAjustada = new Date(fecha);
-            fechaAjustada.setMinutes(fechaAjustada.getMinutes() - fechaAjustada.getTimezoneOffset());
-            return fechaAjustada.toISOString().split('T')[0];
-        }
-
         // Función para mostrar secciones
         window.showSection = function(sectionId) {
             document.querySelectorAll('.section').forEach(section => {
@@ -290,6 +283,13 @@
                 cargarHistorialCompleto();
             }
         };
+
+        // Función para ajustar la fecha a la zona horaria local
+        function ajustarFecha(fecha) {
+            const fechaAjustada = new Date(fecha);
+            fechaAjustada.setMinutes(fechaAjustada.getMinutes() - fechaAjustada.getTimezoneOffset());
+            return fechaAjustada.toISOString().split('T')[0];
+        }
 
         // Manejo del formulario de ingreso
         document.getElementById('ingresoForm').addEventListener('submit', async (e) => {
