@@ -284,11 +284,11 @@
             }
         };
 
-        // Función para ajustar la fecha a la zona horaria local
-        function ajustarFecha(fecha) {
-            const fechaAjustada = new Date(fecha);
-            // Asegurar que la fecha no se convierta a UTC
-            return `${fechaAjustada.getFullYear()}-${String(fechaAjustada.getMonth() + 1).padStart(2, '0')}-${String(fechaAjustada.getDate()).padStart(2, '0')}`;
+        // Función corregida para manejar fechas correctamente
+        function formatDateForFirestore(dateString) {
+            // Esta función toma un string de fecha en formato 'YYYY-MM-DD' y lo devuelve sin modificar
+            // Esto evita el problema de zona horaria al trabajar directamente con strings de fecha
+            return dateString;
         }
 
         // Manejo del formulario de ingreso
@@ -296,11 +296,10 @@
             e.preventDefault();
             
             if (confirm('¿Está seguro de guardar este ingreso?')) {
-                const fechaInput = document.getElementById('fechaIngreso');
-                const fechaCorregida = ajustarFecha(fechaInput.value);
+                const fechaInput = document.getElementById('fechaIngreso').value;
                 
                 const ingreso = {
-                    fecha: fechaCorregida, // Guardar la fecha corregida
+                    fecha: formatDateForFirestore(fechaInput), // Usar la fecha sin ajustar
                     tipo: 'ingreso',
                     leche: parseFloat(document.getElementById('lecheIngreso').value),
                     frijol: parseFloat(document.getElementById('frijolIngreso').value),
@@ -326,11 +325,10 @@
             e.preventDefault();
 
             if (confirm('¿Está seguro de guardar este egreso?')) {
-                const fechaInput = document.getElementById('fechaEgreso');
-                const fechaCorregida = ajustarFecha(fechaInput.value);
+                const fechaInput = document.getElementById('fechaEgreso').value;
                 
                 const egreso = {
-                    fecha: fechaCorregida, // Guardar la fecha corregida
+                    fecha: formatDateForFirestore(fechaInput), // Usar la fecha sin ajustar
                     tipo: 'egreso',
                     leche: parseFloat(document.getElementById('lecheEgreso').textContent),
                     frijol: parseFloat(document.getElementById('frijolEgreso').textContent),
@@ -358,7 +356,8 @@
             const mesSeleccionado = e.target.value;
             const [year, month] = mesSeleccionado.split('-');
             const startDate = `${year}-${month}-01`;
-            const endDate = `${year}-${month}-31`;
+            const lastDay = new Date(year, month, 0).getDate(); // Obtener el último día del mes
+            const endDate = `${year}-${month}-${lastDay}`;
 
             const q = query(
                 collection(db, 'kardex'),
@@ -398,22 +397,23 @@
             }
 
             let html = `
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Fecha</th>
-                            <th>Tipo</th>
-                            <th>Leche</th>
-                            <th>Frijol</th>
-                            <th>Arroz</th>
-                            <th>Azúcar</th>
-                            <th>Aceite</th>
-                            <th>Cereal</th>
-                            <th>Biofortik</th>
-                            ${includeDelete ? '<th>Acciones</th>' : ''}
-                        </tr>
-                    </thead>
-                    <tbody>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Leche</th>
+                                <th>Frijol</th>
+                                <th>Arroz</th>
+                                <th>Azúcar</th>
+                                <th>Aceite</th>
+                                <th>Cereal</th>
+                                <th>Biofortik</th>
+                                ${includeDelete ? '<th>Acciones</th>' : ''}
+                            </tr>
+                        </thead>
+                        <tbody>
             `;
 
             let saldos = {
@@ -428,17 +428,19 @@
 
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                const fecha = new Date(data.fecha + 'T00:00:00'); // Asegurar la fecha correcta
-                const fechaFormateada = fecha.toLocaleDateString('es-ES', { timeZone: 'UTC' });
+                
+                // Formatear la fecha correctamente
+                const fechaPartes = data.fecha.split('-');
+                const fechaFormateada = `${fechaPartes[2]}/${fechaPartes[1]}/${fechaPartes[0]}`;
 
                 // Actualizar saldos
                 if (data.tipo === 'ingreso') {
                     Object.keys(saldos).forEach(key => {
-                        saldos[key] += data[key] || 0;
+                        if (data[key]) saldos[key] += data[key];
                     });
                 } else {
                     Object.keys(saldos).forEach(key => {
-                        saldos[key] -= data[key] || 0;
+                        if (data[key]) saldos[key] -= data[key];
                     });
                 }
 
@@ -458,7 +460,7 @@
                 `;
             });
 
-            html += '</tbody></table>';
+            html += '</tbody></table></div>';
             container.innerHTML = html;
         }
 
@@ -474,6 +476,93 @@
                     alert('Error al eliminar el registro');
                 }
             }
+        };
+
+        // Configuración para cálculo de egresos
+        const checkboxesGrados = document.querySelectorAll('input[name="grado"]');
+        const checkboxesAlimentos = document.querySelectorAll('input[name="alimento"]');
+        const selectAllGrados = document.getElementById('select-all-grados');
+
+        // Seleccionar todos los grados
+        selectAllGrados.addEventListener('change', function() {
+            checkboxesGrados.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            calcularEgreso();
+        });
+
+        // Calcular egreso cuando cambian las selecciones
+        [...checkboxesGrados, ...checkboxesAlimentos].forEach(checkbox => {
+            checkbox.addEventListener('change', calcularEgreso);
+        });
+
+        // Función para calcular egreso
+        function calcularEgreso() {
+            const gradosSeleccionados = Array.from(checkboxesGrados)
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => ({
+                    grado: checkbox.value,
+                    estudiantes: parseInt(checkbox.dataset.students)
+                }));
+                
+            const alimentosSeleccionados = Array.from(checkboxesAlimentos)
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => checkbox.value);
+                
+            // Cantidad total de estudiantes
+            const totalEstudiantes = gradosSeleccionados.reduce((total, grado) => total + grado.estudiantes, 0);
+            
+            // Calcular cantidad por alimento
+            let calculos = {
+                leche: 0,
+                frijol: 0,
+                arroz: 0,
+                azucar: 0,
+                aceite: 0,
+                cereal: 0,
+                biofortik: 0
+            };
+            
+            // Cantidades por estudiante en kg
+            const cantidadPorEstudiante = {
+                leche: 0.030,    // 30g
+                frijol: 0.020,   // 20g
+                arroz: 0.025,    // 25g
+                azucar: 0.012,   // 12g
+                aceite: 0.010,   // 10g
+                cereal: 0.030,   // 30g
+                biofortik: 0.030 // 30g
+            };
+            
+            // Calcular para alimentos regulares
+            alimentosSeleccionados.forEach(alimento => {
+                if (alimento !== 'biofortik') {
+                    calculos[alimento] = totalEstudiantes * cantidadPorEstudiante[alimento];
+                }
+            });
+            
+            // Biofortik solo para grados específicos (P4, P5, P6, 1° a 6°)
+            if (alimentosSeleccionados.includes('biofortik')) {
+                const gradosConBiofortik = ['P4', 'P5', 'P6', '1', '2', '3', '4', '5', '6'];
+                const estudiantesConBiofortik = gradosSeleccionados
+                    .filter(grado => gradosConBiofortik.includes(grado.grado))
+                    .reduce((total, grado) => total + grado.estudiantes, 0);
+                    
+                calculos.biofortik = estudiantesConBiofortik * cantidadPorEstudiante.biofortik;
+            }
+            
+            // Actualizar los valores en pantalla
+            Object.keys(calculos).forEach(alimento => {
+                const element = document.getElementById(`${alimento}Egreso`);
+                if (element) {
+                    element.textContent = calculos[alimento].toFixed(3);
+                }
+            });
+        }
+
+        // Inicializar aplicación mostrando la sección de ingreso
+        window.onload = function() {
+            showSection('ingreso');
         };
     </script>
 </body>
