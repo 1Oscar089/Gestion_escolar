@@ -272,6 +272,13 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
+        // Función para ajustar la fecha a la zona horaria local
+        function ajustarFecha(fecha) {
+            const fechaAjustada = new Date(fecha);
+            fechaAjustada.setMinutes(fechaAjustada.getMinutes() - fechaAjustada.getTimezoneOffset());
+            return fechaAjustada.toISOString().split('T')[0];
+        }
+
         // Función para mostrar secciones
         window.showSection = function(sectionId) {
             document.querySelectorAll('.section').forEach(section => {
@@ -290,11 +297,10 @@
             
             if (confirm('¿Está seguro de guardar este ingreso?')) {
                 const fechaInput = document.getElementById('fechaIngreso');
-                const fechaCorregida = new Date(fechaInput.value);
-                fechaCorregida.setMinutes(fechaCorregida.getMinutes() - fechaCorregida.getTimezoneOffset());
+                const fechaCorregida = ajustarFecha(fechaInput.value);
                 
                 const ingreso = {
-                    fecha: fechaCorregida.toISOString().split('T')[0],
+                    fecha: fechaCorregida,
                     tipo: 'ingreso',
                     leche: parseFloat(document.getElementById('lecheIngreso').value),
                     frijol: parseFloat(document.getElementById('frijolIngreso').value),
@@ -321,11 +327,10 @@
 
             if (confirm('¿Está seguro de guardar este egreso?')) {
                 const fechaInput = document.getElementById('fechaEgreso');
-                const fechaCorregida = new Date(fechaInput.value);
-                fechaCorregida.setMinutes(fechaCorregida.getMinutes() - fechaCorregida.getTimezoneOffset());
+                const fechaCorregida = ajustarFecha(fechaInput.value);
                 
                 const egreso = {
-                    fecha: fechaCorregida.toISOString().split('T')[0],
+                    fecha: fechaCorregida,
                     tipo: 'egreso',
                     leche: parseFloat(document.getElementById('lecheEgreso').textContent),
                     frijol: parseFloat(document.getElementById('frijolEgreso').textContent),
