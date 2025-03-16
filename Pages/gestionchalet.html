@@ -1,1 +1,787 @@
-{"success": false, "error": "403 Forbidden", "needLogin": true}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Gestión Financiera</title>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #34495e;
+            --accent: #3498db;
+            --light: #ecf0f1;
+            --success: #27ae60;
+            --danger: #e74c3c;
+            --text: #2c3e50;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: var(--text);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+        
+        header h1 {
+            text-align: center;
+        }
+        
+        nav {
+            background-color: var(--secondary);
+            padding: 10px 0;
+        }
+        
+        nav ul {
+            display: flex;
+            justify-content: center;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin: 0 15px;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 15px;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        
+        nav ul li a:hover, nav ul li a.active {
+            background-color: var(--accent);
+        }
+        
+        .section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .section h2 {
+            color: var(--primary);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--light);
+        }
+        
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .card h3 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+        
+        .card .amount {
+            font-size: 28px;
+            font-weight: bold;
+        }
+        
+        .card.income {
+            border-top: 4px solid var(--success);
+        }
+        
+        .card.expense {
+            border-top: 4px solid var(--danger);
+        }
+        
+        .card.balance {
+            border-top: 4px solid var(--accent);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--accent);
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        button:hover {
+            opacity: 0.9;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        table th, table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        table th {
+            background-color: var(--light);
+            font-weight: 600;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .filter-controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        .filter-controls select {
+            width: auto;
+        }
+        
+        .total-display {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 20px;
+            text-align: right;
+            color: var(--primary);
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Sistema de Gestión Financiera</h1>
+        </div>
+        <nav>
+            <ul>
+                <li><a href="#inicio" class="active" onclick="showSection('inicio')">Inicio</a></li>
+                <li><a href="#ingresos" onclick="showSection('ingresos')">Ingresos</a></li>
+                <li><a href="#egresos" onclick="showSection('egresos')">Egresos</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+        <!-- Sección de Inicio -->
+        <section id="inicio" class="section">
+            <h2>Resumen Financiero</h2>
+            <div class="dashboard">
+                <div class="card income">
+                    <h3>Total Ingresos</h3>
+                    <div class="amount" id="total-income">$0.00</div>
+                </div>
+                <div class="card expense">
+                    <h3>Total Egresos</h3>
+                    <div class="amount" id="total-expense">$0.00</div>
+                </div>
+                <div class="card balance">
+                    <h3>Saldo Total</h3>
+                    <div class="amount" id="total-balance">$0.00</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección de Ingresos -->
+        <section id="ingresos" class="section hidden">
+            <h2>Gestión de Ingresos</h2>
+            <div id="income-form">
+                <div class="form-group">
+                    <label for="income-amount">Cantidad ($)</label>
+                    <input type="number" id="income-amount" placeholder="Ingrese la cantidad" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="income-date">Fecha</label>
+                    <input type="date" id="income-date">
+                </div>
+                <div class="btn-group">
+                    <button class="btn-success" onclick="addIncome()">Agregar Ingreso</button>
+                    <button class="btn-primary" onclick="toggleIncomeList()">Mostrar Ingresos</button>
+                </div>
+            </div>
+
+            <div id="income-list" class="hidden">
+                <h3>Lista de Ingresos</h3>
+                <div class="filter-controls">
+                    <label for="income-year-filter">Filtrar por año:</label>
+                    <select id="income-year-filter" onchange="filterIncomes()">
+                        <option value="all">Todos los años</option>
+                    </select>
+                </div>
+                <table id="income-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Cantidad</th>
+                        </tr>
+                    </thead>
+                    <tbody id="income-table-body">
+                        <!-- Datos de ingresos se cargarán aquí -->
+                    </tbody>
+                </table>
+                <div class="total-display" id="filtered-income-total">Total: $0.00</div>
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="toggleIncomeList()">Volver</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección de Egresos -->
+        <section id="egresos" class="section hidden">
+            <h2>Gestión de Egresos</h2>
+            <div id="expense-form">
+                <div class="form-group">
+                    <label for="expense-description">Descripción</label>
+                    <input type="text" id="expense-description" placeholder="Ingrese la descripción">
+                </div>
+                <div class="form-group">
+                    <label for="expense-amount">Cantidad ($)</label>
+                    <input type="number" id="expense-amount" placeholder="Ingrese la cantidad" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label for="expense-date">Fecha</label>
+                    <input type="date" id="expense-date">
+                </div>
+                <div class="btn-group">
+                    <button class="btn-danger" onclick="addExpense()">Agregar Egreso</button>
+                    <button class="btn-primary" onclick="toggleExpenseList()">Mostrar Egresos</button>
+                </div>
+            </div>
+
+            <div id="expense-list" class="hidden">
+                <h3>Lista de Egresos</h3>
+                <div class="filter-controls">
+                    <label for="expense-year-filter">Filtrar por año:</label>
+                    <select id="expense-year-filter" onchange="filterExpenses()">
+                        <option value="all">Todos los años</option>
+                    </select>
+                </div>
+                <table id="expense-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Descripción</th>
+                            <th>Cantidad</th>
+                        </tr>
+                    </thead>
+                    <tbody id="expense-table-body">
+                        <!-- Datos de egresos se cargarán aquí -->
+                    </tbody>
+                </table>
+                <div class="total-display" id="filtered-expense-total">Total: $0.00</div>
+                <div class="btn-group">
+                    <button class="btn-primary" onclick="toggleExpenseList()">Volver</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Firebase -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBpd9P5D7Uycdt115kX3kFXTdh6i_QQILM",
+            authDomain: "gestion-chalet.firebaseapp.com",
+            projectId: "gestion-chalet",
+            storageBucket: "gestion-chalet.firebaseapp.com",
+            messagingSenderId: "1046851683988",
+            appId: "1:1046851683988:web:bd154268d78ddfc2219681"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Exponer funciones globalmente
+        window.db = db;
+        window.collection = collection;
+        window.addDoc = addDoc;
+        window.getDocs = getDocs;
+        window.query = query;
+        window.orderBy = orderBy;
+        window.Timestamp = Timestamp;
+
+        // Cargar datos al iniciar
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadData();
+            updateDashboard();
+            setDefaultDates();
+            populateYearFilters();
+        });
+    </script>
+
+    <script>
+        // Variables globales
+        let incomes = [];
+        let expenses = [];
+        let activeSection = 'inicio';
+
+        // Funciones de navegación
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(sectionId).classList.remove('hidden');
+            
+            document.querySelectorAll('nav a').forEach(link => {
+                link.classList.remove('active');
+            });
+            document.querySelector(`nav a[href="#${sectionId}"]`).classList.add('active');
+            
+            activeSection = sectionId;
+        }
+
+        // Establecer fechas por defecto (fecha de El Salvador)
+        function setDefaultDates() {
+            // Obtener fecha actual en El Salvador (UTC-6)
+            const now = new Date();
+            
+            // Crear objeto Date con la zona horaria de El Salvador
+            const elSalvadorDate = new Date(now.toLocaleString("en-US", {timeZone: "America/El_Salvador"}));
+            
+            // Formatear la fecha como YYYY-MM-DD para los inputs
+            const year = elSalvadorDate.getFullYear();
+            const month = String(elSalvadorDate.getMonth() + 1).padStart(2, '0');
+            const day = String(elSalvadorDate.getDate()).padStart(2, '0');
+            const formattedDate = `${year}-${month}-${day}`;
+            
+            document.getElementById('income-date').value = formattedDate;
+            document.getElementById('expense-date').value = formattedDate;
+        }
+
+        // Cargar datos desde Firebase
+        async function loadData() {
+            try {
+                // Cargar ingresos
+                const incomesQuery = query(collection(db, "ingresos"), orderBy("fecha", "desc"));
+                const incomesSnapshot = await getDocs(incomesQuery);
+                incomes = [];
+                incomesSnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    incomes.push({
+                        id: doc.id,
+                        amount: data.cantidad,
+                        date: data.fecha.toDate()
+                    });
+                });
+
+                // Cargar egresos
+                const expensesQuery = query(collection(db, "egresos"), orderBy("fecha", "desc"));
+                const expensesSnapshot = await getDocs(expensesQuery);
+                expenses = [];
+                expensesSnapshot.forEach((doc) => {
+                    const data = doc.data();
+                    expenses.push({
+                        id: doc.id,
+                        description: data.descripcion,
+                        amount: data.cantidad,
+                        date: data.fecha.toDate()
+                    });
+                });
+            } catch (error) {
+                console.error("Error al cargar datos:", error);
+                alert("Error al cargar datos: " + error.message);
+            }
+        }
+
+        // Actualizar el dashboard
+        function updateDashboard() {
+            const totalIncome = incomes.reduce((sum, income) => sum + income.amount, 0);
+            const totalExpense = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+            const balance = totalIncome - totalExpense;
+
+            document.getElementById('total-income').textContent = formatCurrency(totalIncome);
+            document.getElementById('total-expense').textContent = formatCurrency(totalExpense);
+            document.getElementById('total-balance').textContent = formatCurrency(balance);
+        }
+
+        // Crear fecha con zona horaria de El Salvador
+        function createElSalvadorDate(dateStr) {
+            // Crear fecha en la zona horaria local del usuario
+            const localDate = new Date(dateStr);
+            
+            // Convertir a string en formato ISO pero con la zona horaria de El Salvador
+            const elSalvadorDateStr = localDate.toLocaleString("en-US", {
+                timeZone: "America/El_Salvador",
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            
+            // Parsear la fecha de El Salvador
+            const [datePart, timePart] = elSalvadorDateStr.split(", ");
+            const [month, day, year] = datePart.split("/");
+            const [hours, minutes, seconds] = timePart.split(":");
+            
+            // Crear un nuevo objeto Date con los componentes de fecha/hora de El Salvador
+            return new Date(year, month - 1, day, hours, minutes, seconds);
+        }
+
+        // Agregar ingreso
+        async function addIncome() {
+            const amountInput = document.getElementById('income-amount');
+            const dateInput = document.getElementById('income-date');
+            
+            const amount = parseFloat(amountInput.value);
+            const dateStr = dateInput.value;
+            
+            if (!amount || isNaN(amount) || amount <= 0) {
+                alert("Por favor ingrese una cantidad válida");
+                return;
+            }
+            
+            if (!dateStr) {
+                alert("Por favor seleccione una fecha");
+                return;
+            }
+            
+            try {
+                // Crear fecha con zona horaria de El Salvador
+                const date = createElSalvadorDate(dateStr);
+                
+                await addDoc(collection(db, "ingresos"), {
+                    cantidad: amount,
+                    fecha: date
+                });
+                
+                alert("Ingreso agregado correctamente");
+                amountInput.value = "";
+                
+                await loadData();
+                updateDashboard();
+                populateYearFilters();
+            } catch (error) {
+                console.error("Error al agregar ingreso:", error);
+                alert("Error al agregar ingreso: " + error.message);
+            }
+        }
+
+        // Agregar egreso
+        async function addExpense() {
+            const descriptionInput = document.getElementById('expense-description');
+            const amountInput = document.getElementById('expense-amount');
+            const dateInput = document.getElementById('expense-date');
+            
+            const description = descriptionInput.value.trim();
+            const amount = parseFloat(amountInput.value);
+            const dateStr = dateInput.value;
+            
+            if (!description) {
+                alert("Por favor ingrese una descripción");
+                return;
+            }
+            
+            if (!amount || isNaN(amount) || amount <= 0) {
+                alert("Por favor ingrese una cantidad válida");
+                return;
+            }
+            
+            if (!dateStr) {
+                alert("Por favor seleccione una fecha");
+                return;
+            }
+            
+            try {
+                // Crear fecha con zona horaria de El Salvador
+                const date = createElSalvadorDate(dateStr);
+                
+                await addDoc(collection(db, "egresos"), {
+                    descripcion: description,
+                    cantidad: amount,
+                    fecha: date
+                });
+                
+                alert("Egreso agregado correctamente");
+                descriptionInput.value = "";
+                amountInput.value = "";
+                
+                await loadData();
+                updateDashboard();
+                populateYearFilters();
+            } catch (error) {
+                console.error("Error al agregar egreso:", error);
+                alert("Error al agregar egreso: " + error.message);
+            }
+        }
+
+        // Mostrar/ocultar lista de ingresos
+        function toggleIncomeList() {
+            const form = document.getElementById('income-form');
+            const list = document.getElementById('income-list');
+            
+            if (list.classList.contains('hidden')) {
+                form.classList.add('hidden');
+                list.classList.remove('hidden');
+                displayIncomes();
+            } else {
+                form.classList.remove('hidden');
+                list.classList.add('hidden');
+            }
+        }
+
+        // Mostrar/ocultar lista de egresos
+        function toggleExpenseList() {
+            const form = document.getElementById('expense-form');
+            const list = document.getElementById('expense-list');
+            
+            if (list.classList.contains('hidden')) {
+                form.classList.add('hidden');
+                list.classList.remove('hidden');
+                displayExpenses();
+            } else {
+                form.classList.remove('hidden');
+                list.classList.add('hidden');
+            }
+        }
+
+        // Mostrar ingresos en la tabla
+        function displayIncomes(filteredIncomes = null) {
+            const tableBody = document.getElementById('income-table-body');
+            tableBody.innerHTML = '';
+            
+            const incomesToDisplay = filteredIncomes || incomes;
+            let total = 0;
+            
+            incomesToDisplay.forEach(income => {
+                const row = document.createElement('tr');
+                
+                const dateCell = document.createElement('td');
+                dateCell.textContent = formatDate(income.date);
+                row.appendChild(dateCell);
+                
+                const amountCell = document.createElement('td');
+                amountCell.textContent = formatCurrency(income.amount);
+                row.appendChild(amountCell);
+                
+                tableBody.appendChild(row);
+                
+                total += income.amount;
+            });
+            
+            document.getElementById('filtered-income-total').textContent = `Total: ${formatCurrency(total)}`;
+        }
+
+        // Mostrar egresos en la tabla
+        function displayExpenses(filteredExpenses = null) {
+            const tableBody = document.getElementById('expense-table-body');
+            tableBody.innerHTML = '';
+            
+            const expensesToDisplay = filteredExpenses || expenses;
+            let total = 0;
+            
+            expensesToDisplay.forEach(expense => {
+                const row = document.createElement('tr');
+                
+                const dateCell = document.createElement('td');
+                dateCell.textContent = formatDate(expense.date);
+                row.appendChild(dateCell);
+                
+                const descriptionCell = document.createElement('td');
+                descriptionCell.textContent = expense.description;
+                row.appendChild(descriptionCell);
+                
+                const amountCell = document.createElement('td');
+                amountCell.textContent = formatCurrency(expense.amount);
+                row.appendChild(amountCell);
+                
+                tableBody.appendChild(row);
+                
+                total += expense.amount;
+            });
+            
+            document.getElementById('filtered-expense-total').textContent = `Total: ${formatCurrency(total)}`;
+        }
+
+        // Filtrar ingresos por año
+        function filterIncomes() {
+            const yearFilter = document.getElementById('income-year-filter').value;
+            
+            if (yearFilter === 'all') {
+                displayIncomes();
+                return;
+            }
+            
+            const year = parseInt(yearFilter);
+            const filtered = incomes.filter(income => income.date.getFullYear() === year);
+            displayIncomes(filtered);
+        }
+
+        // Filtrar egresos por año
+        function filterExpenses() {
+            const yearFilter = document.getElementById('expense-year-filter').value;
+            
+            if (yearFilter === 'all') {
+                displayExpenses();
+                return;
+            }
+            
+            const year = parseInt(yearFilter);
+            const filtered = expenses.filter(expense => expense.date.getFullYear() === year);
+            displayExpenses(filtered);
+        }
+
+        // Poblar los filtros de año
+        function populateYearFilters() {
+            const years = new Set();
+            
+            incomes.forEach(income => {
+                years.add(income.date.getFullYear());
+            });
+            
+            expenses.forEach(expense => {
+                years.add(expense.date.getFullYear());
+            });
+            
+            const incomeYearFilter = document.getElementById('income-year-filter');
+            const expenseYearFilter = document.getElementById('expense-year-filter');
+            
+            // Guardar la selección actual
+            const currentIncomeYear = incomeYearFilter.value;
+            const currentExpenseYear = expenseYearFilter.value;
+            
+            // Limpiar opciones excepto "Todos los años"
+            while (incomeYearFilter.options.length > 1) {
+                incomeYearFilter.remove(1);
+            }
+            
+            while (expenseYearFilter.options.length > 1) {
+                expenseYearFilter.remove(1);
+            }
+            
+            // Agregar años ordenados de más reciente a más antiguo
+            [...years].sort((a, b) => b - a).forEach(year => {
+                const incomeOption = document.createElement('option');
+                incomeOption.value = year;
+                incomeOption.textContent = year;
+                incomeYearFilter.appendChild(incomeOption);
+                
+                const expenseOption = document.createElement('option');
+                expenseOption.value = year;
+                expenseOption.textContent = year;
+                expenseYearFilter.appendChild(expenseOption);
+            });
+            
+            // Restaurar la selección si es posible
+            if (currentIncomeYear !== 'all') {
+                incomeYearFilter.value = currentIncomeYear;
+            }
+            
+            if (currentExpenseYear !== 'all') {
+                expenseYearFilter.value = currentExpenseYear;
+            }
+        }
+
+        // Formatear moneda
+        function formatCurrency(amount) {
+            return '$' + amount.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+
+        // Formatear fecha
+        function formatDate(date) {
+            return date.toLocaleDateString('es-ES', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                timeZone: 'America/El_Salvador'
+            });
+        }
+
+        // Exponer funciones globalmente
+        window.showSection = showSection;
+        window.addIncome = addIncome;
+        window.addExpense = addExpense;
+        window.toggleIncomeList = toggleIncomeList;
+        window.toggleExpenseList = toggleExpenseList;
+        window.filterIncomes = filterIncomes;
+        window.filterExpenses = filterExpenses;
+    </script>
+</body>
+</html>
