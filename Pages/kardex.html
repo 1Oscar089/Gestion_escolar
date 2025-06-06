@@ -122,6 +122,42 @@
             margin-top: 20px;
             color: #666;
         }
+        .saldo-card {
+            background-color: #e8f4fd;
+            border: 2px solid #1a4c8a;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .saldo-title {
+            color: #1a4c8a;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .saldo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        .saldo-item {
+            background-color: white;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        .saldo-label {
+            font-weight: bold;
+            color: #333;
+            font-size: 0.9rem;
+        }
+        .saldo-value {
+            font-size: 1.1rem;
+            color: #1a4c8a;
+            font-weight: bold;
+        }
         @media (max-width: 480px) {
             .header h1 {
                 font-size: 1.2rem;
@@ -140,6 +176,9 @@
             }
             h3 {
                 font-size: 1rem;
+            }
+            .saldo-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             }
         }
     </style>
@@ -368,12 +407,91 @@
 
             try {
                 const querySnapshot = await getDocs(q);
-                mostrarHistorial(querySnapshot, 'tablaHistorialMensual');
+                mostrarSaldoMensual(querySnapshot, mesSeleccionado);
             } catch (error) {
                 console.error('Error al cargar historial mensual:', error);
                 alert('Error al cargar el historial mensual');
             }
         });
+
+        // Función para mostrar solo el saldo total del mes
+        function mostrarSaldoMensual(querySnapshot, mesSeleccionado) {
+            const container = document.getElementById('tablaHistorialMensual');
+
+            if (querySnapshot.empty) {
+                container.innerHTML = '<div class="no-data">No hay registros para mostrar en este mes</div>';
+                return;
+            }
+
+            let saldos = {
+                leche: 0,
+                frijol: 0,
+                arroz: 0,
+                azucar: 0,
+                aceite: 0,
+                cereal: 0,
+                biofortik: 0
+            };
+
+            // Calcular saldos acumulados hasta el último día del mes
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                
+                // Actualizar saldos
+                if (data.tipo === 'ingreso') {
+                    Object.keys(saldos).forEach(key => {
+                        if (data[key]) saldos[key] += data[key];
+                    });
+                } else {
+                    Object.keys(saldos).forEach(key => {
+                        if (data[key]) saldos[key] -= data[key];
+                    });
+                }
+            });
+
+            const [year, month] = mesSeleccionado.split('-');
+            const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            const nombreMes = meses[parseInt(month) - 1];
+
+            let html = `
+                <div class="saldo-card">
+                    <div class="saldo-title">Saldo Total - ${nombreMes} ${year}</div>
+                    <div class="saldo-grid">
+                        <div class="saldo-item">
+                            <div class="saldo-label">Leche</div>
+                            <div class="saldo-value">${saldos.leche.toFixed(2)} kg</div>
+                        </div>
+                        <div class="saldo-item">
+                            <div class="saldo-label">Frijol</div>
+                            <div class="saldo-value">${saldos.frijol.toFixed(2)} kg</div>
+                        </div>
+                        <div class="saldo-item">
+                            <div class="saldo-label">Arroz</div>
+                            <div class="saldo-value">${saldos.arroz.toFixed(2)} kg</div>
+                        </div>
+                        <div class="saldo-item">
+                            <div class="saldo-label">Azúcar</div>
+                            <div class="saldo-value">${saldos.azucar.toFixed(2)} kg</div>
+                        </div>
+                        <div class="saldo-item">
+                            <div class="saldo-label">Aceite</div>
+                            <div class="saldo-value">${saldos.aceite.toFixed(2)} kg</div>
+                        </div>
+                        <div class="saldo-item">
+                            <div class="saldo-label">Cereal</div>
+                            <div class="saldo-value">${saldos.cereal.toFixed(2)} kg</div>
+                        </div>
+                        <div class="saldo-item">
+                            <div class="saldo-label">Biofortik</div>
+                            <div class="saldo-value">${saldos.biofortik.toFixed(2)} kg</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
 
         // Cargar historial completo
         async function cargarHistorialCompleto() {
