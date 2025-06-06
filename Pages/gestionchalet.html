@@ -12,6 +12,7 @@
             --light: #ecf0f1;
             --success: #27ae60;
             --danger: #e74c3c;
+            --warning: #f39c12;
             --text: #2c3e50;
         }
         
@@ -173,6 +174,17 @@
             color: white;
         }
         
+        .btn-warning {
+            background-color: var(--warning);
+            color: white;
+        }
+        
+        .btn-small {
+            padding: 5px 10px;
+            font-size: 12px;
+            margin: 0 2px;
+        }
+        
         button:hover {
             opacity: 0.9;
         }
@@ -192,6 +204,11 @@
         table th {
             background-color: var(--light);
             font-weight: 600;
+        }
+        
+        .actions-column {
+            width: 150px;
+            text-align: center;
         }
         
         .hidden {
@@ -217,6 +234,53 @@
             color: var(--primary);
         }
         
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--light);
+        }
+        
+        .modal-header h3 {
+            color: var(--primary);
+            margin: 0;
+        }
+        
+        .close {
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: var(--danger);
+        }
+        
         @media (max-width: 768px) {
             .dashboard {
                 grid-template-columns: 1fr;
@@ -224,6 +288,15 @@
             
             .btn-group {
                 flex-direction: column;
+            }
+            
+            table {
+                font-size: 14px;
+            }
+            
+            .btn-small {
+                padding: 3px 6px;
+                font-size: 10px;
             }
         }
     </style>
@@ -293,6 +366,7 @@
                         <tr>
                             <th>Fecha</th>
                             <th>Cantidad</th>
+                            <th class="actions-column">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="income-table-body">
@@ -342,6 +416,7 @@
                             <th>Fecha</th>
                             <th>Descripción</th>
                             <th>Cantidad</th>
+                            <th class="actions-column">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="expense-table-body">
@@ -356,11 +431,59 @@
         </section>
     </div>
 
+    <!-- Modal para editar ingreso -->
+    <div id="edit-income-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Ingreso</h3>
+                <span class="close" onclick="closeEditIncomeModal()">&times;</span>
+            </div>
+            <div class="form-group">
+                <label for="edit-income-amount">Cantidad ($)</label>
+                <input type="number" id="edit-income-amount" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="edit-income-date">Fecha</label>
+                <input type="date" id="edit-income-date">
+            </div>
+            <div class="btn-group">
+                <button class="btn-success" onclick="saveIncomeEdit()">Guardar</button>
+                <button class="btn-primary" onclick="closeEditIncomeModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para editar egreso -->
+    <div id="edit-expense-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Editar Egreso</h3>
+                <span class="close" onclick="closeEditExpenseModal()">&times;</span>
+            </div>
+            <div class="form-group">
+                <label for="edit-expense-description">Descripción</label>
+                <input type="text" id="edit-expense-description">
+            </div>
+            <div class="form-group">
+                <label for="edit-expense-amount">Cantidad ($)</label>
+                <input type="number" id="edit-expense-amount" min="0" step="0.01">
+            </div>
+            <div class="form-group">
+                <label for="edit-expense-date">Fecha</label>
+                <input type="date" id="edit-expense-date">
+            </div>
+            <div class="btn-group">
+                <button class="btn-success" onclick="saveExpenseEdit()">Guardar</button>
+                <button class="btn-primary" onclick="closeEditExpenseModal()">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase -->
     <script type="module">
         // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDocs, query, orderBy, Timestamp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, query, orderBy, doc, updateDoc, deleteDoc, Timestamp } from "https://www.gstatic.com/firebasejs/11.4.0/firebase-firestore.js";
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
@@ -383,6 +506,9 @@
         window.getDocs = getDocs;
         window.query = query;
         window.orderBy = orderBy;
+        window.doc = doc;
+        window.updateDoc = updateDoc;
+        window.deleteDoc = deleteDoc;
         window.Timestamp = Timestamp;
 
         // Cargar datos al iniciar
@@ -399,6 +525,8 @@
         let incomes = [];
         let expenses = [];
         let activeSection = 'inicio';
+        let editingIncomeId = null;
+        let editingExpenseId = null;
 
         // Funciones de navegación
         function showSection(sectionId) {
@@ -641,6 +769,14 @@
                 amountCell.textContent = formatCurrency(income.amount);
                 row.appendChild(amountCell);
                 
+                const actionsCell = document.createElement('td');
+                actionsCell.className = 'actions-column';
+                actionsCell.innerHTML = `
+                    <button class="btn-warning btn-small" onclick="editIncome('${income.id}')">Modificar</button>
+                    <button class="btn-danger btn-small" onclick="deleteIncome('${income.id}')">Eliminar</button>
+                `;
+                row.appendChild(actionsCell);
+                
                 tableBody.appendChild(row);
                 
                 total += income.amount;
@@ -672,12 +808,174 @@
                 amountCell.textContent = formatCurrency(expense.amount);
                 row.appendChild(amountCell);
                 
+                const actionsCell = document.createElement('td');
+                actionsCell.className = 'actions-column';
+                actionsCell.innerHTML = `
+                    <button class="btn-warning btn-small" onclick="editExpense('${expense.id}')">Modificar</button>
+                    <button class="btn-danger btn-small" onclick="deleteExpense('${expense.id}')">Eliminar</button>
+                `;
+                row.appendChild(actionsCell);
+                
                 tableBody.appendChild(row);
                 
                 total += expense.amount;
             });
             
             document.getElementById('filtered-expense-total').textContent = `Total: ${formatCurrency(total)}`;
+        }
+
+        // Editar ingreso
+        function editIncome(incomeId) {
+            const income = incomes.find(i => i.id === incomeId);
+            if (!income) return;
+            
+            editingIncomeId = incomeId;
+            document.getElementById('edit-income-amount').value = income.amount;
+            document.getElementById('edit-income-date').value = formatDateForInput(income.date);
+            document.getElementById('edit-income-modal').style.display = 'block';
+        }
+
+        // Editar egreso
+        function editExpense(expenseId) {
+            const expense = expenses.find(e => e.id === expenseId);
+            if (!expense) return;
+            
+            editingExpenseId = expenseId;
+            document.getElementById('edit-expense-description').value = expense.description;
+            document.getElementById('edit-expense-amount').value = expense.amount;
+            document.getElementById('edit-expense-date').value = formatDateForInput(expense.date);
+            document.getElementById('edit-expense-modal').style.display = 'block';
+        }
+
+        // Guardar edición de ingreso
+        async function saveIncomeEdit() {
+            const amount = parseFloat(document.getElementById('edit-income-amount').value);
+            const dateStr = document.getElementById('edit-income-date').value;
+            
+            if (!amount || isNaN(amount) || amount <= 0) {
+                alert("Por favor ingrese una cantidad válida");
+                return;
+            }
+            
+            if (!dateStr) {
+                alert("Por favor seleccione una fecha");
+                return;
+            }
+            
+            try {
+                const date = createElSalvadorDate(dateStr);
+                
+                await updateDoc(doc(db, "ingresos", editingIncomeId), {
+                    cantidad: amount,
+                    fecha: date
+                });
+                
+                alert("Ingreso actualizado correctamente");
+                closeEditIncomeModal();
+                
+                await loadData();
+                updateDashboard();
+                displayIncomes();
+                populateYearFilters();
+            } catch (error) {
+                console.error("Error al actualizar ingreso:", error);
+                alert("Error al actualizar ingreso: " + error.message);
+            }
+        }
+
+        // Guardar edición de egreso
+        async function saveExpenseEdit() {
+            const description = document.getElementById('edit-expense-description').value.trim();
+            const amount = parseFloat(document.getElementById('edit-expense-amount').value);
+            const dateStr = document.getElementById('edit-expense-date').value;
+            
+            if (!description) {
+                alert("Por favor ingrese una descripción");
+                return;
+            }
+            
+            if (!amount || isNaN(amount) || amount <= 0) {
+                alert("Por favor ingrese una cantidad válida");
+                return;
+            }
+            
+            if (!dateStr) {
+                alert("Por favor seleccione una fecha");
+                return;
+            }
+            
+            try {
+                const date = createElSalvadorDate(dateStr);
+                
+                await updateDoc(doc(db, "egresos", editingExpenseId), {
+                    descripcion: description,
+                    cantidad: amount,
+                    fecha: date
+                });
+                
+                alert("Egreso actualizado correctamente");
+                closeEditExpenseModal();
+                
+                await loadData();
+                updateDashboard();
+                displayExpenses();
+                populateYearFilters();
+            } catch (error) {
+                console.error("Error al actualizar egreso:", error);
+                alert("Error al actualizar egreso: " + error.message);
+            }
+        }
+
+        // Eliminar ingreso
+        async function deleteIncome(incomeId) {
+            if (!confirm("¿Está seguro de que desea eliminar este ingreso?")) {
+                return;
+            }
+            
+            try {
+                await deleteDoc(doc(db, "ingresos", incomeId));
+                alert("Ingreso eliminado correctamente");
+                
+                await loadData();
+                updateDashboard();
+                displayIncomes();
+                populateYearFilters();
+            } catch (error) {
+                console.error("Error al eliminar ingreso:", error);
+                alert("Error al eliminar ingreso: " + error.message);
+            }
+        }
+
+        // Eliminar egreso
+        async function deleteExpense(expenseId) {
+            if (!confirm("¿Está seguro de que desea eliminar este egreso?")) {
+                return;
+            }
+            
+            try {
+                await deleteDoc(doc(db, "egresos", expenseId));
+                alert("Egreso eliminado correctamente");
+                
+                await loadData();
+                updateDashboard();
+                displayExpenses();
+                populateYearFilters();
+            } catch (error) {
+                console.error("Error al eliminar egreso:", error);
+                alert("Error al eliminar egreso: " + error.message);
+            }
+        }
+
+        // Cerrar modal de edición de ingreso
+        function closeEditIncomeModal() {
+            document.getElementById('edit-income-modal').style.display = 'none';
+            editingIncomeId = null;
+        }
+
+        // Cerrar modal de edición de egreso
+        function closeEditExpenseModal() {
+            document.getElementById('edit-expense-modal').style.display = 'none';
+            editingExpenseId = null;
         }
 
         // Filtrar ingresos por año
@@ -774,6 +1072,28 @@
             });
         }
 
+        // Formatear fecha para input
+        function formatDateForInput(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Cerrar modales al hacer clic fuera de ellos
+        window.onclick = function(event) {
+            const incomeModal = document.getElementById('edit-income-modal');
+            const expenseModal = document.getElementById('edit-expense-modal');
+            
+            if (event.target === incomeModal) {
+                closeEditIncomeModal();
+            }
+            
+            if (event.target === expenseModal) {
+                closeEditExpenseModal();
+            }
+        }
+
         // Exponer funciones globalmente
         window.showSection = showSection;
         window.addIncome = addIncome;
@@ -782,6 +1102,14 @@
         window.toggleExpenseList = toggleExpenseList;
         window.filterIncomes = filterIncomes;
         window.filterExpenses = filterExpenses;
+        window.editIncome = editIncome;
+        window.editExpense = editExpense;
+        window.deleteIncome = deleteIncome;
+        window.deleteExpense = deleteExpense;
+        window.saveIncomeEdit = saveIncomeEdit;
+        window.saveExpenseEdit = saveExpenseEdit;
+        window.closeEditIncomeModal = closeEditIncomeModal;
+        window.closeEditExpenseModal = closeEditExpenseModal;
     </script>
 </body>
 </html>
